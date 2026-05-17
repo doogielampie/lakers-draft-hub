@@ -83,7 +83,7 @@ export default function ProspectDrawer({ prospect, onClose }) {
   const hasCombine = !!(p.ht || p.ws || p.mv || p.la);
   const prof = PROFILES[p.n];
   const logoKey = PROSPECT_LOGO[p.n];
-  const level = isTarget ? 3 : hasCombine ? 2 : 1;
+  const level = (isTarget || prof?.marTake) ? 3 : hasCombine ? 2 : 1;
 
   return (
     <div
@@ -104,10 +104,11 @@ export default function ProspectDrawer({ prospect, onClose }) {
         <button
           onClick={onClose}
           style={{
-            position: 'absolute', top: 16, right: 16,
-            background: 'transparent', border: `1px solid ${BORDER}`,
-            color: MUTED, borderRadius: 6, padding: '4px 10px',
-            cursor: 'pointer', fontSize: 18, zIndex: 10, lineHeight: 1,
+            position: 'absolute', top: 14, right: 14,
+            background: DARK, border: `1px solid ${BORDER}`,
+            color: TEXT, borderRadius: 6, padding: '5px 11px',
+            cursor: 'pointer', fontSize: 16, zIndex: 10, lineHeight: 1,
+            boxShadow: '0 2px 8px rgba(0,0,0,0.5)',
           }}
         >×</button>
 
@@ -141,7 +142,7 @@ export default function ProspectDrawer({ prospect, onClose }) {
             ))}
           </div>
           <div style={{ fontSize: 10, color: MUTED, fontFamily: "'DM Mono', monospace" }}>
-            DATA DEPTH: {level === 1 ? 'STATS ONLY' : level === 2 ? 'STATS + COMBINE' : 'FULL SCOUTING PROFILE (LAKERS TARGET)'}
+            DATA DEPTH: {level === 1 ? 'STATS ONLY' : level === 2 ? 'STATS + COMBINE' : isTarget ? 'FULL SCOUTING PROFILE (LAKERS TARGET)' : "MIKE'S TAKE"}
           </div>
         </div>
 
@@ -204,55 +205,63 @@ export default function ProspectDrawer({ prospect, onClose }) {
             </>
           )}
 
-          {/* Level 3 — Full scouting profile */}
-          {isTarget && prof && (
+          {/* Level 3 — Full scouting profile for LAL targets, or Mike's take for March prospects */}
+          {prof && (
             <>
               <div style={{ height: 1, background: BORDER, margin: '16px 0' }} />
-              <div style={{ marginBottom: 16 }}>
-                <SectionLabel>CONSENSUS RANGE</SectionLabel>
-                <div style={{
-                  background: `${PURPLE}22`, border: `1px solid ${PURPLE}55`,
-                  borderRadius: 6, padding: '10px 14px', fontSize: 13, color: TEXT,
-                }}>{prof.range}</div>
-              </div>
-              <div style={{ marginBottom: 16 }}>
-                <SectionLabel>SHOOTING SPLITS</SectionLabel>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  {[['3PT%', prof.splits?.threeP], ['FT%', prof.splits?.ft]].map(([l, v]) => (
-                    <div key={l} style={{ flex: 1, background: SURFACE, borderRadius: 6, padding: '10px', textAlign: 'center' }}>
-                      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 16, color: TEXT }}>{v || '—'}</div>
-                      <div style={{ fontSize: 10, color: MUTED, marginTop: 3 }}>{l}</div>
-                    </div>
-                  ))}
-                  <div style={{ flex: 1, background: SURFACE, borderRadius: 6, padding: '10px', textAlign: 'center' }}>
-                    <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: MUTED, fontStyle: 'italic' }}>{prof.comp}</div>
-                    <div style={{ fontSize: 10, color: MUTED, marginTop: 3 }}>COMP</div>
+
+              {/* Full profile for LAL targets */}
+              {isTarget && (
+                <>
+                  <div style={{ marginBottom: 16 }}>
+                    <SectionLabel>CONSENSUS RANGE</SectionLabel>
+                    <div style={{
+                      background: `${PURPLE}22`, border: `1px solid ${PURPLE}55`,
+                      borderRadius: 6, padding: '10px 14px', fontSize: 13, color: TEXT,
+                    }}>{prof.range}</div>
                   </div>
-                </div>
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
-                <div>
-                  <SectionLabel>STRENGTHS</SectionLabel>
-                  {prof.strengths?.map((s, i) => (
-                    <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-                      <span style={{ color: GOLD, flexShrink: 0, marginTop: 2 }}>+</span>
-                      <span style={{ color: MUTED, fontSize: 12, lineHeight: 1.6 }}>{s}</span>
+                  <div style={{ marginBottom: 16 }}>
+                    <SectionLabel>SHOOTING SPLITS</SectionLabel>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      {[['3PT%', prof.splits?.threeP], ['FT%', prof.splits?.ft]].map(([l, v]) => (
+                        <div key={l} style={{ flex: 1, background: SURFACE, borderRadius: 6, padding: '10px', textAlign: 'center' }}>
+                          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 16, color: TEXT }}>{v || '—'}</div>
+                          <div style={{ fontSize: 10, color: MUTED, marginTop: 3 }}>{l}</div>
+                        </div>
+                      ))}
+                      <div style={{ flex: 1, background: SURFACE, borderRadius: 6, padding: '10px', textAlign: 'center' }}>
+                        <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: MUTED, fontStyle: 'italic' }}>{prof.comp}</div>
+                        <div style={{ fontSize: 10, color: MUTED, marginTop: 3 }}>COMP</div>
+                      </div>
                     </div>
-                  ))}
-                </div>
-                <div>
-                  <SectionLabel>CONCERNS</SectionLabel>
-                  {prof.concerns?.map((c, i) => (
-                    <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
-                      <span style={{ color: '#ff6b6b', flexShrink: 0, marginTop: 2 }}>–</span>
-                      <span style={{ color: MUTED, fontSize: 12, lineHeight: 1.6 }}>{c}</span>
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
+                    <div>
+                      <SectionLabel>STRENGTHS</SectionLabel>
+                      {prof.strengths?.map((s, i) => (
+                        <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                          <span style={{ color: GOLD, flexShrink: 0, marginTop: 2 }}>+</span>
+                          <span style={{ color: MUTED, fontSize: 12, lineHeight: 1.6 }}>{s}</span>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-              </div>
+                    <div>
+                      <SectionLabel>CONCERNS</SectionLabel>
+                      {prof.concerns?.map((c, i) => (
+                        <div key={i} style={{ display: 'flex', gap: 8, marginBottom: 8 }}>
+                          <span style={{ color: '#ff6b6b', flexShrink: 0, marginTop: 2 }}>–</span>
+                          <span style={{ color: MUTED, fontSize: 12, lineHeight: 1.6 }}>{c}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {/* Take — shown for both LAL targets and March article prospects */}
               <div>
-                <SectionLabel>WRITER'S TAKE</SectionLabel>
-                <div style={{ borderLeft: `3px solid ${GOLD}`, paddingLeft: 16, marginBottom: 8 }}>
+                <SectionLabel>{prof.credit ? "MIKE'S TAKE" : "THE TAKE"}</SectionLabel>
+                <div style={{ borderLeft: `3px solid ${prof.credit ? GOLD : PURPLE}`, paddingLeft: 16, marginBottom: 8 }}>
                   <p style={{ color: TEXT, fontSize: 13, lineHeight: 1.85, margin: 0, fontStyle: 'italic' }}>{prof.take}</p>
                 </div>
                 {prof.credit && (
