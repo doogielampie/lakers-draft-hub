@@ -6,18 +6,18 @@ import { BORDER, MUTED } from '../theme';
 // e.g. 'ncaa-iowa-state' -> '/logos/ncaa/iowa-state.svg'
 function logoPath(key) {
   if (!key) return null;
+  const base = import.meta.env.BASE_URL;
   const [league, ...rest] = key.split('-');
   if (league === 'nba') {
-    return `/logos/nba/${rest.join('-')}.svg`;
+    return `${base}logos/nba/${rest.join('-')}.svg`;
   }
   if (league === 'ncaa') {
-    // Handle the filename mapping quirks
     const name = rest.join('-');
     const fixes = {
       'st-john-s': 'st.-johns',
       'texas-a-m': 'texas-a&m',
     };
-    return `/logos/ncaa/${fixes[name] || name}.svg`;
+    return `${base}logos/ncaa/${fixes[name] || name}.svg`;
   }
   return null;
 }
