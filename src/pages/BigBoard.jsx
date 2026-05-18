@@ -14,6 +14,7 @@ const CLASSES = ['All', 'Freshman', 'Sophomore', 'Junior', 'Senior', 'Internatio
 const COLS = [
   { col: 'rank', label: 'RANK' },
   { col: 'n', label: 'NAME' },
+  { col: 'combine', label: '⚡', title: 'Combine participant' },
   { col: 'pos', label: 'POS' },
   { col: 'sch', label: 'SCHOOL' },
   { col: 'cls', label: 'CLASS' },
@@ -98,14 +99,14 @@ export default function BigBoard() {
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
             <thead style={{ background: DARK }}>
               <tr>
-                {COLS.map(({ col, label }) => (
-                  <th key={col} onClick={() => handleSort(col)} style={{
+                {COLS.map(({ col, label, title }) => (
+                  <th key={col} onClick={() => col !== 'combine' && handleSort(col)} title={title} style={{
                     padding: '10px 14px', textAlign: 'left', fontSize: 10,
                     fontFamily: "'DM Mono', monospace", color: sortCol === col ? GOLD : MUTED,
-                    cursor: 'pointer', whiteSpace: 'nowrap', userSelect: 'none',
+                    cursor: col !== 'combine' ? 'pointer' : 'default', whiteSpace: 'nowrap', userSelect: 'none',
                     borderBottom: `1px solid ${BORDER}`,
                   }}>
-                    {label}<SortIcon col={col} />
+                    {label}{col !== 'combine' && <SortIcon col={col} />}
                   </th>
                 ))}
               </tr>
@@ -113,6 +114,7 @@ export default function BigBoard() {
             <tbody>
               {filtered.map((p, i) => {
                 const isTarget = LAL_TARGETS.includes(p.n);
+                const hasCombine = !!(p.ht || p.ws || p.mv || p.la);
                 const inWindow = p.rank != null && p.rank >= 15 && p.rank <= 40;
                 const rowBg = isTarget ? `${GOLD}14` : inWindow ? `${GOLD}07` : i % 2 === 0 ? CARD : `${CARD}cc`;
                 const logoKey = PROSPECT_LOGO[p.n];
@@ -147,11 +149,26 @@ export default function BigBoard() {
                         <span style={{ color: isTarget ? GOLD : TEXT, fontWeight: isTarget ? 600 : 400 }}>{p.n}</span>
                       </div>
                     </td>
+                    <td style={{ padding: '9px 14px', textAlign: 'center' }}>
+                      {hasCombine ? (
+                        <span title="NBA Combine participant" style={{
+                          display: 'inline-block', width: 8, height: 8, borderRadius: '50%',
+                          background: '#60a5fa', flexShrink: 0,
+                        }} />
+                      ) : (
+                        <span style={{
+                          display: 'inline-block', width: 8, height: 8, borderRadius: '50%',
+                          background: BORDER, flexShrink: 0,
+                        }} />
+                      )}
+                    </td>
                     <td style={{ padding: '9px 14px', color: MUTED, fontSize: 12 }}>{p.pos}</td>
                     <td style={{ padding: '9px 14px', color: MUTED, fontSize: 12, whiteSpace: 'nowrap' }}>{p.sch}</td>
                     <td style={{ padding: '9px 14px', color: MUTED, fontSize: 12 }}>{p.cls}</td>
                     <td style={{ padding: '9px 14px', fontFamily: "'DM Mono', monospace", fontSize: 12, color: MUTED }}>{fmt(p.age, 1)}</td>
-                    <td style={{ padding: '9px 14px', fontFamily: "'DM Mono', monospace", fontSize: 12, color: MUTED }}>{p.ht || p.htT || '—'}</td>
+                    <td style={{ padding: '9px 14px', fontFamily: "'DM Mono', monospace", fontSize: 12, color: MUTED }}>
+                      {p.ht || p.htT || '—'}
+                    </td>
                     <td style={{ padding: '9px 14px', fontFamily: "'DM Mono', monospace", fontSize: 12, color: MUTED }}>
                       {p.wc ? `${Math.round(p.wc)} lbs` : p.wtT ? `${p.wtT} lbs` : '—'}
                     </td>
@@ -167,10 +184,15 @@ export default function BigBoard() {
           {[
             { c: GOLD, l: 'LAL target — click for full scouting profile' },
             { c: `${GOLD}44`, l: '#15–40 Lakers scouting window' },
-            { c: MUTED, l: 'Click any row for stats + combine data' },
+            { c: '#60a5fa', l: 'NBA Combine participant', dot: true },
+            { c: BORDER, l: 'No combine data', dot: true },
           ].map((item, i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: MUTED }}>
-              <span style={{ width: 10, height: 10, background: item.c, borderRadius: 2, display: 'inline-block', flexShrink: 0 }} />
+              <span style={{
+                width: item.dot ? 8 : 10, height: item.dot ? 8 : 10,
+                background: item.c, borderRadius: item.dot ? '50%' : 2,
+                display: 'inline-block', flexShrink: 0,
+              }} />
               {item.l}
             </div>
           ))}

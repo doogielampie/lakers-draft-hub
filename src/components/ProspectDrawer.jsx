@@ -101,10 +101,25 @@ export default function ProspectDrawer({ prospect, onClose }) {
           animation: 'slideIn 0.22s ease-out',
         }}
       >
+        {/* Close bar */}
+        <div style={{
+          display: 'flex', justifyContent: 'flex-end',
+          padding: '10px 14px 0', flexShrink: 0,
+        }}>
+          <button
+            onClick={onClose}
+            style={{
+              background: DARK, border: `1px solid ${BORDER}`,
+              color: TEXT, borderRadius: 6, padding: '5px 11px',
+              cursor: 'pointer', fontSize: 16, lineHeight: 1,
+            }}
+          >×</button>
+        </div>
+
         {/* Header */}
         <div style={{
           background: `linear-gradient(135deg, ${PURPLE}55 0%, ${CARD} 100%)`,
-          padding: '20px 28px', borderBottom: `1px solid ${BORDER}`, flexShrink: 0,
+          padding: '16px 28px 20px', borderBottom: `1px solid ${BORDER}`, flexShrink: 0,
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
             <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
@@ -114,35 +129,33 @@ export default function ProspectDrawer({ prospect, onClose }) {
                 <div style={{ color: MUTED, fontSize: 13, marginTop: 4 }}>{p.pos} · {p.sch} · {p.cls} · Age {p.age}</div>
               </div>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
-              <button
-                onClick={onClose}
-                style={{
-                  background: DARK, border: `1px solid ${BORDER}`,
-                  color: TEXT, borderRadius: 6, padding: '5px 11px',
-                  cursor: 'pointer', fontSize: 16, lineHeight: 1,
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.5)',
-                }}
-              >×</button>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 36, color: GOLD, lineHeight: 1 }}>#{p.rd}</div>
-                {isTarget && (
-                  <div style={{
-                    background: GOLD, color: '#000', borderRadius: 4,
-                    padding: '2px 8px', fontSize: 11, fontWeight: 700, marginTop: 4, display: 'inline-block',
-                  }}>LAL TARGET</div>
-                )}
-              </div>
+            <div style={{ textAlign: 'right' }}>
+              <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 36, color: GOLD, lineHeight: 1 }}>#{p.rd}</div>
+              {isTarget && (
+                <div style={{
+                  background: GOLD, color: '#000', borderRadius: 4,
+                  padding: '2px 8px', fontSize: 11, fontWeight: 700, marginTop: 4, display: 'inline-block',
+                }}>LAL TARGET</div>
+              )}
             </div>
           </div>
-          {/* Data depth indicator */}
-          <div style={{ display: 'flex', gap: 4, marginBottom: 6 }}>
-            {[1, 2, 3].map(l => (
-              <div key={l} style={{ flex: 1, height: 3, borderRadius: 2, background: l <= level ? GOLD : BORDER }} />
+          {/* Data availability indicators */}
+          <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+            {[
+              { label: 'Stats', active: true, color: GOLD },
+              { label: 'Measurements', active: !!(p.ht || p.ws || p.sr || p.wc), color: '#60a5fa' },
+              { label: 'Athleticism', active: !!(p.mv || p.la || p.sp), color: '#60a5fa' },
+              { label: 'Research', active: !!(isTarget && prof?.range), color: '#a78bfa' },
+              { label: "Mike's Take", active: !!(prof?.take && prof?.credit), color: GOLD },
+            ].map(({ label, active, color }) => (
+              <span key={label} style={{
+                fontFamily: "'DM Mono', monospace", fontSize: 10, letterSpacing: 0.5,
+                padding: '3px 8px', borderRadius: 4,
+                background: active ? `${color}22` : `${BORDER}`,
+                color: active ? color : MUTED,
+                border: `1px solid ${active ? `${color}55` : BORDER}`,
+              }}>{label}</span>
             ))}
-          </div>
-          <div style={{ fontSize: 10, color: MUTED, fontFamily: "'DM Mono', monospace" }}>
-            DATA DEPTH: {level === 1 ? 'STATS ONLY' : level === 2 ? 'STATS + COMBINE' : isTarget ? 'FULL SCOUTING PROFILE (LAKERS TARGET)' : "MIKE'S TAKE"}
           </div>
         </div>
 
@@ -179,29 +192,55 @@ export default function ProspectDrawer({ prospect, onClose }) {
             <>
               <div style={{ height: 1, background: BORDER, margin: '16px 0' }} />
               <div style={{ marginBottom: 16 }}>
-                <SectionLabel>PHYSICAL — NBA DRAFT COMBINE</SectionLabel>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 8, marginBottom: 12 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                  <SectionLabel>PHYSICAL MEASUREMENTS</SectionLabel>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 8, marginBottom: 4 }}>
                   {[
-                    ['HEIGHT (no shoes)', p.ht || p.htT || '—'],
-                    ['WINGSPAN', p.ws || '—'],
-                    ['STANDING REACH', p.sr || '—'],
-                    ['WEIGHT', p.wc ? `${Math.round(p.wc)} lbs` : p.wtT ? `${p.wtT} lbs` : '—'],
-                  ].map(([l, v]) => (
+                    ['HEIGHT (no shoes)', p.ht, 'NBA Combine'],
+                    ['WINGSPAN', p.ws, 'NBA Combine'],
+                    ['STANDING REACH', p.sr, 'NBA Combine'],
+                    ['WEIGHT', p.wc ? `${Math.round(p.wc)} lbs` : null, 'NBA Combine'],
+                  ].map(([l, v, src]) => (
                     <div key={l} style={{ background: SURFACE, borderRadius: 6, padding: '10px 12px' }}>
-                      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 14, color: TEXT, fontWeight: 600 }}>{v}</div>
+                      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 14, color: TEXT, fontWeight: 600 }}>{v || '—'}</div>
                       <div style={{ fontSize: 10, color: MUTED, marginTop: 3 }}>{l}</div>
+                      <div style={{ fontSize: 9, color: `${MUTED}88`, marginTop: 2, fontFamily: "'DM Mono', monospace" }}>{src}</div>
                     </div>
                   ))}
                 </div>
               </div>
               {(p.mv || p.la || p.sp) && (
                 <div style={{ marginBottom: 16 }}>
-                  <SectionLabel>ATHLETICISM — NBA COMBINE</SectionLabel>
+                  <SectionLabel>ATHLETICISM</SectionLabel>
                   <AthBar label="Max Vert" val={p.mv} unit='"' benchmark={40} lower={false} />
                   <AthBar label="Lane Agility" val={p.la} unit="s" benchmark={10.5} lower={true} note="lower = faster" />
                   <AthBar label="3/4 Sprint" val={p.sp} unit="s" benchmark={3.10} lower={true} />
+                  <div style={{ fontSize: 9, color: `${MUTED}88`, fontFamily: "'DM Mono', monospace", marginTop: 4 }}>NBA Combine</div>
                 </div>
               )}
+            </>
+          )}
+
+          {/* Tankathon fallback measurements for non-combine prospects */}
+          {!hasCombine && (p.htT || p.wtT) && (
+            <>
+              <div style={{ height: 1, background: BORDER, margin: '16px 0' }} />
+              <div style={{ marginBottom: 16 }}>
+                <SectionLabel>PHYSICAL MEASUREMENTS</SectionLabel>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 8, marginBottom: 4 }}>
+                  {[
+                    ['HEIGHT', p.htT, p.htT],
+                    ['WEIGHT', p.wtT ? `${p.wtT} lbs` : null, null],
+                  ].filter(([,v]) => v).map(([l, v]) => (
+                    <div key={l} style={{ background: SURFACE, borderRadius: 6, padding: '10px 12px', opacity: 0.85 }}>
+                      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 14, color: TEXT, fontWeight: 600 }}>{v}</div>
+                      <div style={{ fontSize: 10, color: MUTED, marginTop: 3 }}>{l}</div>
+                      <div style={{ fontSize: 9, color: `${MUTED}88`, marginTop: 2, fontFamily: "'DM Mono', monospace" }}>Tankathon (with shoes)</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </>
           )}
 
