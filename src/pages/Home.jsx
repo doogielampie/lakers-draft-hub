@@ -1,5 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { GOLD, PURPLE, CARD, BORDER, TEXT, MUTED, DARK } from '../theme';
+import useIsMobile from '../hooks/useIsMobile';
 
 const SECTIONS = [
   { path: '/draft-order', label: 'Draft Order', num: '01', desc: 'Full 60-pick draft order, both rounds. Lakers pick #25 highlighted.' },
@@ -10,17 +11,18 @@ const SECTIONS = [
 
 export default function Home() {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
   const go = (path) => { navigate(path); window.scrollTo({ top: 0 }); };
 
   return (
-    <div style={{ maxWidth: 1200, margin: '0 auto', padding: '80px 24px' }}>
-      <div style={{ marginBottom: 64 }}>
+    <div style={{ maxWidth: 1200, margin: '0 auto', padding: 'clamp(40px, 8vw, 80px) clamp(16px, 4vw, 24px)' }}>
+      <div style={{ marginBottom: isMobile ? 40 : 64 }}>
         <div style={{ fontSize: 12, color: GOLD, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 16 }}>
           Los Angeles Lakers · Pick #25 · 2026 NBA Draft
         </div>
         <h1 style={{
           fontFamily: "'Bebas Neue', sans-serif",
-          fontSize: 'clamp(56px, 8vw, 100px)',
+          fontSize: 'clamp(48px, 8vw, 100px)',
           lineHeight: 0.92, letterSpacing: 3, margin: '0 0 24px', color: TEXT,
         }}>
           2026 NBA<br /><span style={{ color: GOLD }}>Draft Hub</span>

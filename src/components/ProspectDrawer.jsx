@@ -4,6 +4,7 @@ import { PROSPECT_LOGO } from '../data/draftOrder';
 import { LAL_TARGETS } from '../data/bigboard';
 import Logo from './Logo';
 import { GOLD, PURPLE, CARD, SURFACE, BORDER, TEXT, MUTED, DARK } from '../theme';
+import useIsMobile from '../hooks/useIsMobile';
 
 const fmt = (v, d = 1) => v == null ? '—' : Number(v).toFixed(d);
 const fmtP = (v) => v == null ? '—' : (v * 100).toFixed(1) + '%';
@@ -63,12 +64,15 @@ function AthBar({ label, val, unit, benchmark, lower, note }) {
 
 export default function ProspectDrawer({ prospect, onClose }) {
   const ref = useRef(null);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose(); };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [onClose]);
+    if (!isMobile) {
+      const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) onClose(); };
+      document.addEventListener('mousedown', handler);
+      return () => document.removeEventListener('mousedown', handler);
+    }
+  }, [onClose, isMobile]);
 
   useEffect(() => {
     const handler = (e) => { if (e.key === 'Escape') onClose(); };
@@ -83,28 +87,45 @@ export default function ProspectDrawer({ prospect, onClose }) {
   const hasCombine = !!(p.ht || p.ws || p.mv || p.la);
   const prof = PROFILES[p.n];
   const logoKey = PROSPECT_LOGO[p.n];
-  const level = (isTarget || prof?.marTake) ? 3 : hasCombine ? 2 : 1;
+
+  const panelStyle = isMobile
+    ? {
+        position: 'fixed', bottom: 0, left: 0, right: 0,
+        height: '92vh', borderRadius: '16px 16px 0 0',
+        background: CARD, borderTop: `1px solid ${BORDER}`,
+        display: 'flex', flexDirection: 'column', zIndex: 1,
+        overflowY: 'auto', animation: 'slideUp 0.24s ease-out',
+      }
+    : {
+        position: 'relative', width: 480, height: '100%',
+        background: CARD, borderLeft: `1px solid ${BORDER}`,
+        display: 'flex', flexDirection: 'column', zIndex: 1, overflowY: 'auto',
+        animation: 'slideIn 0.22s ease-out',
+      };
+
+  const overlayStyle = isMobile
+    ? { position: 'fixed', inset: 0, zIndex: 300, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end' }
+    : { position: 'fixed', inset: 0, zIndex: 300, display: 'flex', justifyContent: 'flex-end' };
 
   return (
     <div
-      style={{ position: 'fixed', inset: 0, zIndex: 300, display: 'flex', justifyContent: 'flex-end' }}
+      style={overlayStyle}
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }} />
 
-      <div
-        ref={ref}
-        style={{
-          position: 'relative', width: 480, height: '100%',
-          background: CARD, borderLeft: `1px solid ${BORDER}`,
-          display: 'flex', flexDirection: 'column', zIndex: 1, overflowY: 'auto',
-          animation: 'slideIn 0.22s ease-out',
-        }}
-      >
+      <div ref={ref} style={panelStyle}>
+        {/* Mobile drag handle */}
+        {isMobile && (
+          <div style={{ display: 'flex', justifyContent: 'center', padding: '10px 0 4px', flexShrink: 0 }}>
+            <div style={{ width: 36, height: 4, borderRadius: 2, background: BORDER }} />
+          </div>
+        )}
+
         {/* Close bar */}
         <div style={{
           display: 'flex', justifyContent: 'flex-end',
-          padding: '10px 14px 0', flexShrink: 0,
+          padding: isMobile ? '4px 14px 0' : '10px 14px 0', flexShrink: 0,
         }}>
           <button
             onClick={onClose}
@@ -125,11 +146,11 @@ export default function ProspectDrawer({ prospect, onClose }) {
             <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
               <Logo logoKey={logoKey} size={48} fallback={p.sch} />
               <div>
-                <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 28, letterSpacing: 1, lineHeight: 1, color: TEXT }}>{p.n}</div>
+                <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: isMobile ? 22 : 28, letterSpacing: 1, lineHeight: 1, color: TEXT }}>{p.n}</div>
                 <div style={{ color: MUTED, fontSize: 13, marginTop: 4 }}>{p.pos} · {p.sch} · {p.cls} · Age {p.age}</div>
               </div>
             </div>
-            <div style={{ textAlign: 'right' }}>
+            <div style={{ textAlign: 'right', flexShrink: 0, marginLeft: 8 }}>
               <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 36, color: GOLD, lineHeight: 1 }}>#{p.rd}</div>
               {isTarget && (
                 <div style={{
@@ -139,7 +160,6 @@ export default function ProspectDrawer({ prospect, onClose }) {
               )}
             </div>
           </div>
-          {/* Data availability indicators */}
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {[
               { label: 'Stats', active: true, color: GOLD },
@@ -161,7 +181,6 @@ export default function ProspectDrawer({ prospect, onClose }) {
 
         {/* Body */}
         <div style={{ padding: '20px 28px', flex: 1 }}>
-          {/* Level 1 — Stats */}
           <div style={{ marginBottom: 20 }}>
             <SectionLabel>PER GAME</SectionLabel>
             <StatGrid>
@@ -187,14 +206,11 @@ export default function ProspectDrawer({ prospect, onClose }) {
             </StatGrid>
           </div>
 
-          {/* Level 2 — Combine */}
           {hasCombine && (
             <>
               <div style={{ height: 1, background: BORDER, margin: '16px 0' }} />
               <div style={{ marginBottom: 16 }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                  <SectionLabel>PHYSICAL MEASUREMENTS</SectionLabel>
-                </div>
+                <SectionLabel>PHYSICAL MEASUREMENTS</SectionLabel>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 8, marginBottom: 4 }}>
                   {[
                     ['HEIGHT (no shoes)', p.ht, 'NBA Combine'],
@@ -222,7 +238,6 @@ export default function ProspectDrawer({ prospect, onClose }) {
             </>
           )}
 
-          {/* Tankathon fallback measurements for non-combine prospects */}
           {!hasCombine && (p.htT || p.wtT) && (
             <>
               <div style={{ height: 1, background: BORDER, margin: '16px 0' }} />
@@ -244,12 +259,10 @@ export default function ProspectDrawer({ prospect, onClose }) {
             </>
           )}
 
-          {/* Level 3 — Full scouting profile for LAL targets, or Mike's take for March prospects */}
           {prof && (
             <>
               <div style={{ height: 1, background: BORDER, margin: '16px 0' }} />
 
-              {/* Full profile for LAL targets */}
               {isTarget && (
                 <>
                   <div style={{ marginBottom: 16 }}>
@@ -297,7 +310,6 @@ export default function ProspectDrawer({ prospect, onClose }) {
                 </>
               )}
 
-              {/* Take — shown for both LAL targets and March article prospects */}
               <div>
                 <SectionLabel>{prof.credit ? "MIKE'S TAKE" : "THE TAKE"}</SectionLabel>
                 <div style={{ borderLeft: `3px solid ${prof.credit ? GOLD : PURPLE}`, paddingLeft: 16, marginBottom: 8 }}>
@@ -314,6 +326,7 @@ export default function ProspectDrawer({ prospect, onClose }) {
 
       <style>{`
         @keyframes slideIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(100%); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
       `}</style>
     </div>
   );

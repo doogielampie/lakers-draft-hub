@@ -1,4 +1,5 @@
 import { GOLD, CARD, BORDER, TEXT, MUTED } from '../theme';
+import useIsMobile from '../hooks/useIsMobile';
 
 const PANELS = [
   {
@@ -20,10 +21,11 @@ const PANELS = [
 ];
 
 export default function LakersAt25() {
+  const isMobile = useIsMobile();
   return (
-    <div style={{ maxWidth: 1200, margin: '0 auto', padding: '48px 24px' }}>
+    <div style={{ maxWidth: 1200, margin: '0 auto', padding: 'clamp(20px, 5vw, 48px) clamp(16px, 4vw, 24px)' }}>
       <div style={{ width: 40, height: 3, background: GOLD, marginBottom: 16, borderRadius: 2 }} />
-      <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 40, letterSpacing: 2, marginBottom: 6, color: TEXT }}>
+      <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: isMobile ? 28 : 40, letterSpacing: 2, marginBottom: 6, color: TEXT }}>
         THE LAKERS AT #25
       </h2>
       <p style={{ color: MUTED, fontSize: 14, marginBottom: 28 }}>
@@ -31,7 +33,7 @@ export default function LakersAt25() {
       </p>
       <div style={{ display: 'grid', gap: 1, background: BORDER, borderRadius: 12, overflow: 'hidden', border: `1px solid ${BORDER}` }}>
         {PANELS.map((item, i) => (
-          <div key={i} style={{ background: CARD, padding: '24px 28px' }}>
+          <div key={i} style={{ background: CARD, padding: isMobile ? '20px 18px' : '24px 28px' }}>
             <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 15, color: GOLD, letterSpacing: 1, marginBottom: 10 }}>
               {item.t}
             </div>

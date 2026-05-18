@@ -1,8 +1,10 @@
 import { DRAFT_ORDER, DRAFT_LOGO } from '../data/draftOrder';
 import Logo from '../components/Logo';
 import { GOLD, PURPLE, CARD, BORDER, TEXT, MUTED, SURFACE } from '../theme';
+import useIsMobile from '../hooks/useIsMobile';
 
 export default function DraftOrder() {
+  const isMobile = useIsMobile();
   const firstRound = DRAFT_ORDER.filter(p => p.pick <= 30);
   const secondRound = DRAFT_ORDER.filter(p => p.pick > 30);
 
@@ -27,9 +29,9 @@ export default function DraftOrder() {
   };
 
   return (
-    <div style={{ maxWidth: 1200, margin: '0 auto', padding: '48px 24px' }}>
+    <div style={{ maxWidth: 1200, margin: '0 auto', padding: 'clamp(20px, 5vw, 48px) clamp(16px, 4vw, 24px)' }}>
       <div style={{ width: 40, height: 3, background: GOLD, marginBottom: 16, borderRadius: 2 }} />
-      <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 40, letterSpacing: 2, marginBottom: 6, color: TEXT }}>
+      <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: isMobile ? 28 : 40, letterSpacing: 2, marginBottom: 6, color: TEXT }}>
         DRAFT ORDER
       </h2>
       <p style={{ color: MUTED, fontSize: 14, marginBottom: 28 }}>

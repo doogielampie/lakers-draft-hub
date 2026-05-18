@@ -3,6 +3,7 @@ import { BB, LAL_TARGETS } from '../data/bigboard';
 import { PROSPECT_LOGO } from '../data/draftOrder';
 import Logo from '../components/Logo';
 import { GOLD, PURPLE, CARD, BORDER, TEXT, MUTED, SURFACE } from '../theme';
+import useIsMobile from '../hooks/useIsMobile';
 
 const TIER1 = [
   { n: 'Cameron Boozer', pos: 'PF', sch: 'Duke', rank: 1, bpm: 18.7, note: "National Player of the Year. Elite skill, IQ, shooting touch. Some scouts question his athletic ceiling." },
@@ -12,7 +13,7 @@ const TIER1 = [
 ];
 
 const TIER2 = [
-  { n: 'Keaton Wagler', pos: 'SG/PG', sch: 'Illinois', rank: 5, bpm: 12.3, note: 'Most NBA-ready second-tier guard. Size, scoring efficiency, feel at 6\'6".' },
+  { n: 'Keaton Wagler', pos: 'SG/PG', sch: 'Illinois', rank: 5, bpm: 12.3, note: 'Most NBA-ready second-tier guard. Size, scoring efficiency, feel at 6\'6\".' },
   { n: 'Darius Acuff Jr.', pos: 'PG', sch: 'Arkansas', rank: 6, bpm: 10.1, note: 'SEC Player of the Year. Elite shot creator. Defensive questions linger.' },
   { n: 'Kingston Flemings', pos: 'PG', sch: 'Houston', rank: 7, bpm: 12.6, note: 'Considered a better two-way fit than Acuff. Strong defensive metrics.' },
 ];
@@ -40,18 +41,31 @@ const scatterData = BB
   .map(p => ({ x: p.rank, y: p.bpm, name: p.n, isTarget: LAL_TARGETS.includes(p.n) }));
 
 export default function ClassOverview() {
+  const isMobile = useIsMobile();
+  const padding = 'clamp(20px, 5vw, 48px) clamp(16px, 4vw, 24px)';
+
   return (
     <div style={{ background: SURFACE, minHeight: '100vh' }}>
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '48px 24px' }}>
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding }}>
         <div style={{ width: 40, height: 3, background: GOLD, marginBottom: 16, borderRadius: 2 }} />
-        <h2 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 40, letterSpacing: 2, marginBottom: 6, color: TEXT }}>
+        <h2 style={{
+          fontFamily: "'Bebas Neue', sans-serif",
+          fontSize: isMobile ? 28 : 40,
+          letterSpacing: 2, marginBottom: 6, color: TEXT,
+        }}>
           2026 DRAFT CLASS
         </h2>
         <p style={{ color: MUTED, fontSize: 14, marginBottom: 32 }}>
           One of the strongest classes in recent memory, with a structural wrinkle that matters for the Lakers.
         </p>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 32, marginBottom: 36 }}>
+        {/* Two-col → single col on mobile */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+          gap: isMobile ? 20 : 32,
+          marginBottom: 36,
+        }}>
           <div>
             <p style={{ color: TEXT, lineHeight: 1.85, fontSize: 14, margin: '0 0 16px' }}>
               The 2026 class is being characterized as one of the strongest in recent memory. ESPN's Bobby Marks called it{' '}
@@ -80,7 +94,11 @@ export default function ClassOverview() {
         {/* Tier 1 */}
         <div style={{ marginBottom: 32 }}>
           <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 18, color: TEXT, letterSpacing: 1, marginBottom: 14 }}>TIER 1 — CONSENSUS TOP 4</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 10, marginBottom: 24 }}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(4,1fr)',
+            gap: 10, marginBottom: 24,
+          }}>
             {TIER1.map(p => (
               <div key={p.n} style={{ background: CARD, border: `1px solid ${PURPLE}55`, borderRadius: 10, padding: '16px 14px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
@@ -92,14 +110,18 @@ export default function ClassOverview() {
                 <span style={{ background: `${GOLD}22`, color: GOLD, borderRadius: 4, padding: '2px 7px', fontSize: 11, fontFamily: "'DM Mono', monospace" }}>
                   BPM {p.bpm}
                 </span>
-                <p style={{ fontSize: 11, color: MUTED, lineHeight: 1.6, marginTop: 10, marginBottom: 0 }}>{p.note}</p>
+                {!isMobile && <p style={{ fontSize: 11, color: MUTED, lineHeight: 1.6, marginTop: 10, marginBottom: 0 }}>{p.note}</p>}
               </div>
             ))}
           </div>
 
           {/* Tier 2 */}
           <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 18, color: TEXT, letterSpacing: 1, marginBottom: 14 }}>TIER 2 — SECOND-TIER GUARDS</div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)', gap: 10, marginBottom: 24 }}>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile ? 'repeat(2, 1fr)' : 'repeat(3,1fr)',
+            gap: 10, marginBottom: 24,
+          }}>
             {TIER2.map(p => (
               <div key={p.n} style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 10, padding: '16px 14px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 10 }}>
@@ -111,7 +133,7 @@ export default function ClassOverview() {
                 <span style={{ background: `${GOLD}22`, color: GOLD, borderRadius: 4, padding: '2px 7px', fontSize: 11, fontFamily: "'DM Mono', monospace" }}>
                   BPM {p.bpm}
                 </span>
-                <p style={{ fontSize: 11, color: MUTED, lineHeight: 1.6, marginTop: 10, marginBottom: 0 }}>{p.note}</p>
+                {!isMobile && <p style={{ fontSize: 11, color: MUTED, lineHeight: 1.6, marginTop: 10, marginBottom: 0 }}>{p.note}</p>}
               </div>
             ))}
           </div>
@@ -125,17 +147,30 @@ export default function ClassOverview() {
           <div style={{ color: MUTED, fontSize: 11, marginBottom: 16 }}>
             All ranked prospects · Gold = Lakers targets · Shaded band = #15–40 window
           </div>
-          <div style={{ height: 300, background: CARD, borderRadius: 12, padding: '16px 8px 12px', border: `1px solid ${BORDER}` }}>
+          <div style={{
+            height: isMobile ? 220 : 300,
+            background: CARD, borderRadius: 12,
+            padding: isMobile ? '12px 4px 12px 0' : '16px 8px 12px',
+            border: `1px solid ${BORDER}`,
+          }}>
             <ResponsiveContainer width="100%" height="100%">
-              <ScatterChart margin={{ top: 8, right: 24, left: 0, bottom: 20 }}>
+              <ScatterChart margin={{ top: 8, right: isMobile ? 8 : 24, left: isMobile ? -8 : 0, bottom: 20 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#2a2a3a" opacity={0.5} />
-                <XAxis dataKey="x" type="number" domain={[1, 75]} tick={{ fill: '#8a8a9a', fontSize: 10, fontFamily: 'DM Mono' }}
-                  label={{ value: 'Rank', position: 'insideBottom', offset: -10, fill: '#8a8a9a', fontSize: 11 }} />
-                <YAxis dataKey="y" type="number" domain={[-2, 20]} tick={{ fill: '#8a8a9a', fontSize: 10, fontFamily: 'DM Mono' }}
-                  label={{ value: 'BPM', angle: -90, position: 'insideLeft', fill: '#8a8a9a', fontSize: 11 }} />
+                <XAxis
+                  dataKey="x" type="number" domain={[1, 75]}
+                  tick={{ fill: '#8a8a9a', fontSize: isMobile ? 10 : 10, fontFamily: 'DM Mono' }}
+                  label={{ value: 'Rank', position: 'insideBottom', offset: -10, fill: '#8a8a9a', fontSize: isMobile ? 11 : 11 }}
+                />
+                <YAxis
+                  dataKey="y" type="number" domain={[-2, 20]}
+                  tick={{ fill: '#8a8a9a', fontSize: isMobile ? 10 : 10, fontFamily: 'DM Mono' }}
+                  label={{ value: 'BPM', angle: -90, position: 'insideLeft', fill: '#8a8a9a', fontSize: isMobile ? 11 : 11 }}
+                  width={isMobile ? 32 : 40}
+                />
                 <Tooltip content={<CustomTooltip />} />
                 <ReferenceArea x1={15} x2={40} fill={GOLD} fillOpacity={0.06} stroke={GOLD} strokeOpacity={0.25}
-                  label={{ value: "Lakers Window #15–40", fill: GOLD, fontSize: 10, position: 'insideTop', offset: 8 }} />
+                  label={!isMobile ? { value: "Lakers Window #15–40", fill: GOLD, fontSize: 10, position: 'insideTop', offset: 8 } : undefined}
+                />
                 <ReferenceLine x={25} stroke={GOLD} strokeDasharray="4 4" strokeOpacity={0.7} />
                 <Scatter data={scatterData} shape={<CustomDot />} />
               </ScatterChart>
