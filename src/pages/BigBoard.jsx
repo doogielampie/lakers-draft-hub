@@ -38,6 +38,8 @@ export default function BigBoard() {
   const [drawer, setDrawer] = useState(null);
   const [posFilter, setPosFilter] = useState('All');
   const [clsFilter, setClsFilter] = useState('All');
+  const [combineFilter, setCombineFilter] = useState(false);
+  const [radarFilter, setRadarFilter] = useState(false);
   const [sortCol, setSortCol] = useState('rank');
   const [sortDir, setSortDir] = useState('asc');
   const isMobile = useIsMobile();
@@ -46,6 +48,8 @@ export default function BigBoard() {
     let data = [...BB];
     if (posFilter !== 'All') data = data.filter(p => p.pos?.split('/')[0] === posFilter);
     if (clsFilter !== 'All') data = data.filter(p => p.cls === clsFilter);
+    if (combineFilter) data = data.filter(p => !!(p.ht || p.ws || p.mv || p.la));
+    if (radarFilter) data = data.filter(p => !!RADAR_GRADES[p.n]);
     data.sort((a, b) => {
       let av = a[sortCol], bv = b[sortCol];
       if (sortCol === 'rank') { av = a.rank ?? 9999; bv = b.rank ?? 9999; }
@@ -54,7 +58,7 @@ export default function BigBoard() {
       return sortDir === 'asc' ? (av > bv ? 1 : -1) : (av < bv ? 1 : -1);
     });
     return data;
-  }, [posFilter, clsFilter, sortCol, sortDir]);
+  }, [posFilter, clsFilter, combineFilter, radarFilter, sortCol, sortDir]);
 
   const handleSort = (col) => {
     if (sortCol === col) setSortDir(d => d === 'asc' ? 'desc' : 'asc');
@@ -110,8 +114,24 @@ export default function BigBoard() {
                 }}>{c === 'International' ? 'Intl' : c}</button>
               ))}
             </div>
-            <div style={{ marginLeft: 'auto', fontSize: 11, color: MUTED, fontFamily: "'DM Mono', monospace" }}>
-              {filtered.length} prospects
+            <div style={{ marginLeft: 'auto', display: 'flex', gap: 6, alignItems: 'center' }}>
+              <button onClick={() => setCombineFilter(f => !f)} style={{
+                background: combineFilter ? '#60a5fa' : '#1a1a26',
+                color: combineFilter ? '#000' : MUTED,
+                border: `1px solid ${combineFilter ? '#60a5fa' : '#2a2a3a'}`,
+                borderRadius: 4, padding: '4px 9px', fontSize: 11, cursor: 'pointer',
+                fontFamily: "'DM Mono', monospace", fontWeight: combineFilter ? 700 : 400,
+              }}>● COMBINE</button>
+              <button onClick={() => setRadarFilter(f => !f)} style={{
+                background: radarFilter ? GOLD : '#1a1a26',
+                color: radarFilter ? '#000' : MUTED,
+                border: `1px solid ${radarFilter ? GOLD : '#2a2a3a'}`,
+                borderRadius: 4, padding: '4px 9px', fontSize: 11, cursor: 'pointer',
+                fontFamily: "'DM Mono', monospace", fontWeight: radarFilter ? 700 : 400,
+              }}>● RADAR</button>
+              <span style={{ fontSize: 11, color: MUTED, fontFamily: "'DM Mono', monospace", paddingLeft: 4 }}>
+                {filtered.length} prospects
+              </span>
             </div>
           </div>
         )}
@@ -140,6 +160,22 @@ export default function BigBoard() {
                   {label} {sortCol === col ? (sortDir === 'asc' ? '↑' : '↓') : ''}
                 </button>
               ))}
+              <button onClick={() => setCombineFilter(f => !f)} style={{
+                background: combineFilter ? '#60a5fa' : '#1a1a26',
+                color: combineFilter ? '#000' : MUTED,
+                border: `1px solid ${combineFilter ? '#60a5fa' : '#2a2a3a'}`,
+                borderRadius: 20, padding: '5px 12px', fontSize: 11,
+                cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
+                fontFamily: "'DM Mono', monospace", fontWeight: combineFilter ? 700 : 400,
+              }}>● Combine</button>
+              <button onClick={() => setRadarFilter(f => !f)} style={{
+                background: radarFilter ? GOLD : '#1a1a26',
+                color: radarFilter ? '#000' : MUTED,
+                border: `1px solid ${radarFilter ? GOLD : '#2a2a3a'}`,
+                borderRadius: 20, padding: '5px 12px', fontSize: 11,
+                cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
+                fontFamily: "'DM Mono', monospace", fontWeight: radarFilter ? 700 : 400,
+              }}>● Radar</button>
               <div style={{ marginLeft: 'auto', paddingLeft: 8, fontSize: 11, color: MUTED, fontFamily: "'DM Mono', monospace", whiteSpace: 'nowrap', display: 'flex', alignItems: 'center', flexShrink: 0 }}>
                 {filtered.length} prospects
               </div>
