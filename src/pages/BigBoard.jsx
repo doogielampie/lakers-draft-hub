@@ -14,7 +14,7 @@ const CLASSES = ['All', 'Freshman', 'Sophomore', 'Junior', 'Senior', 'Internatio
 const COLS = [
   { col: 'rank', label: 'RANK' },
   { col: 'n', label: 'NAME' },
-  { col: 'combine', label: 'CMB', title: 'NBA Combine participant' },
+  { col: 'combine', label: 'COMBINE', title: 'NBA Combine participant' },
   { col: 'pos', label: 'POS' },
   { col: 'sch', label: 'SCHOOL' },
   { col: 'cls', label: 'CLASS' },
@@ -149,16 +149,16 @@ export default function BigBoard() {
                         <span style={{ color: isTarget ? GOLD : TEXT, fontWeight: isTarget ? 600 : 400 }}>{p.n}</span>
                       </div>
                     </td>
-                    <td style={{ padding: '9px 14px', textAlign: 'center' }}>
+                    <td style={{ padding: '9px 14px' }}>
                       {hasCombine ? (
                         <span title="NBA Combine participant" style={{
                           display: 'inline-block', width: 8, height: 8, borderRadius: '50%',
-                          background: '#60a5fa', flexShrink: 0,
+                          background: '#60a5fa',
                         }} />
                       ) : (
                         <span style={{
                           display: 'inline-block', width: 8, height: 8, borderRadius: '50%',
-                          background: BORDER, flexShrink: 0,
+                          background: BORDER,
                         }} />
                       )}
                     </td>
