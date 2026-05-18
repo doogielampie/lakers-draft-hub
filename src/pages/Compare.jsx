@@ -327,20 +327,21 @@ function StatRow({ label, valA, valB, higherBetter = true }) {
   const pctB = hasVals ? Math.min(100, (Math.abs(numB) / maxVal) * 100) : 0;
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '8px 12px', borderBottom: `1px solid ${BORDER}22` }}>
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'flex-end' }}>
-        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 13, fontWeight: winA ? 700 : 400, color: winA ? GOLD : hasVals ? TEXT : `${MUTED}33`, minWidth: 44, textAlign: 'right' }}>{valA}</span>
-        <div style={{ width: 60, height: 4, background: BORDER, borderRadius: 3, overflow: 'hidden', direction: 'rtl' }}>
-          <div style={{ height: '100%', width: `${pctA}%`, background: winA ? GOLD : `${GOLD}33`, borderRadius: 3 }} />
-        </div>
+    <div style={{ display: 'flex', alignItems: 'center', gap: 0, padding: '7px 16px', borderBottom: `1px solid ${BORDER}22` }}>
+      {/* A value */}
+      <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 13, fontWeight: winA ? 700 : 400, color: winA ? GOLD : hasVals ? TEXT : `${MUTED}33`, whiteSpace: 'nowrap', minWidth: 56, textAlign: 'right' }}>{valA}</span>
+      {/* A bar */}
+      <div style={{ flex: 1, height: 4, background: BORDER, borderRadius: 3, overflow: 'hidden', direction: 'rtl', marginLeft: 10 }}>
+        <div style={{ height: '100%', width: `${pctA}%`, background: winA ? GOLD : `${GOLD}33`, borderRadius: 3 }} />
       </div>
-      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: MUTED, letterSpacing: 1, textAlign: 'center', minWidth: 56, flexShrink: 0 }}>{label}</div>
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: 6 }}>
-        <div style={{ width: 60, height: 4, background: BORDER, borderRadius: 3, overflow: 'hidden' }}>
-          <div style={{ height: '100%', width: `${pctB}%`, background: winB ? PURPLE : `${PURPLE}33`, borderRadius: 3 }} />
-        </div>
-        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 13, fontWeight: winB ? 700 : 400, color: winB ? PURPLE : hasVals ? TEXT : `${MUTED}33`, minWidth: 44 }}>{valB}</span>
+      {/* Label */}
+      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: MUTED, letterSpacing: 1, textAlign: 'center', width: 72, flexShrink: 0, padding: '0 8px' }}>{label}</div>
+      {/* B bar */}
+      <div style={{ flex: 1, height: 4, background: BORDER, borderRadius: 3, overflow: 'hidden', marginRight: 10 }}>
+        <div style={{ height: '100%', width: `${pctB}%`, background: winB ? PURPLE : `${PURPLE}33`, borderRadius: 3 }} />
       </div>
+      {/* B value */}
+      <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 13, fontWeight: winB ? 700 : 400, color: winB ? PURPLE : hasVals ? TEXT : `${MUTED}33`, whiteSpace: 'nowrap', minWidth: 56 }}>{valB}</span>
     </div>
   );
 }
@@ -381,6 +382,15 @@ function NameHeader({ nameA, nameB }) {
   );
 }
 
+// ─── Stat sub-section divider ─────────────────────────────────────────────────
+function StatSection({ label }) {
+  return (
+    <div style={{ padding: '6px 16px 4px', background: `${BORDER}44`, borderBottom: `1px solid ${BORDER}22` }}>
+      <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: `${MUTED}88`, letterSpacing: 2 }}>{label}</span>
+    </div>
+  );
+}
+
 // ─── Main page ────────────────────────────────────────────────────────────────
 export default function Compare() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -400,19 +410,40 @@ export default function Compare() {
 
   const padding = 'clamp(20px, 5vw, 48px) clamp(16px, 4vw, 24px)';
 
-  const STAT_ROWS = [
-    { label: 'PPG',      valA: fmt(prospectA?.ppg),   valB: fmt(prospectB?.ppg) },
-    { label: 'RPG',      valA: fmt(prospectA?.rpg),   valB: fmt(prospectB?.rpg) },
-    { label: 'APG',      valA: fmt(prospectA?.apg),   valB: fmt(prospectB?.apg) },
-    { label: 'BPM',      valA: fmt(prospectA?.bpm),   valB: fmt(prospectB?.bpm) },
-    { label: 'TS%',      valA: fmtP(prospectA?.ts),   valB: fmtP(prospectB?.ts) },
-    { label: 'USG%',     valA: prospectA?.usg != null ? prospectA.usg + '%' : '—', valB: prospectB?.usg != null ? prospectB.usg + '%' : '—' },
-    { label: 'STL/36',   valA: fmt(prospectA?.p36s),  valB: fmt(prospectB?.p36s) },
-    { label: 'BLK/36',   valA: fmt(prospectA?.p36b),  valB: fmt(prospectB?.p36b) },
-    { label: 'DBPM',     valA: fmt(prospectA?.dbpm),  valB: fmt(prospectB?.dbpm) },
-    { label: 'WINGSPAN', valA: prospectA?.ws || '—',  valB: prospectB?.ws || '—' },
+  const BBALL_ROWS = [
+    { label: 'PPG',    valA: fmt(prospectA?.ppg),  valB: fmt(prospectB?.ppg) },
+    { label: 'RPG',    valA: fmt(prospectA?.rpg),  valB: fmt(prospectB?.rpg) },
+    { label: 'APG',    valA: fmt(prospectA?.apg),  valB: fmt(prospectB?.apg) },
+    { label: 'BPM',    valA: fmt(prospectA?.bpm),  valB: fmt(prospectB?.bpm) },
+    { label: 'TS%',    valA: fmtP(prospectA?.ts),  valB: fmtP(prospectB?.ts) },
+    { label: 'USG%',   valA: prospectA?.usg != null ? prospectA.usg + '%' : '—', valB: prospectB?.usg != null ? prospectB.usg + '%' : '—' },
+    { label: 'STL/36', valA: fmt(prospectA?.p36s), valB: fmt(prospectB?.p36s) },
+    { label: 'BLK/36', valA: fmt(prospectA?.p36b), valB: fmt(prospectB?.p36b) },
+    { label: 'DBPM',   valA: fmt(prospectA?.dbpm), valB: fmt(prospectB?.dbpm) },
+  ];
+
+  const PHYS_ROWS = [
+    { label: 'WINGSPAN', valA: prospectA?.ws || '—', valB: prospectB?.ws || '—' },
+    { label: 'HT (NS)',  valA: prospectA?.ht || '—', valB: prospectB?.ht || '—' },
+    { label: 'STD REACH',valA: prospectA?.sr || '—', valB: prospectB?.sr || '—' },
+    { label: 'WEIGHT',   valA: prospectA?.wc != null ? Math.round(prospectA.wc) + ' lbs' : prospectB?.wtT ? prospectA?.wtT + ' lbs' : '—', valB: prospectB?.wc != null ? Math.round(prospectB.wc) + ' lbs' : prospectB?.wtT ? prospectB.wtT + ' lbs' : '—' },
     { label: 'MAX VERT', valA: prospectA?.mv != null ? prospectA.mv + '"' : '—', valB: prospectB?.mv != null ? prospectB.mv + '"' : '—' },
     { label: 'LANE AGI', valA: prospectA?.la != null ? prospectA.la + 's' : '—', valB: prospectB?.la != null ? prospectB.la + 's' : '—', higherBetter: false },
+    { label: 'SPRINT',   valA: prospectA?.sp != null ? prospectA.sp + 's' : '—', valB: prospectB?.sp != null ? prospectB.sp + 's' : '—', higherBetter: false },
+  ];
+
+  // Filler stats shown at the bottom of each dashboard side column
+  const fillerStatsA = [
+    { label: 'PPG', val: fmt(prospectA?.ppg) },
+    { label: 'BPM', val: fmt(prospectA?.bpm) },
+    { label: 'TS%', val: fmtP(prospectA?.ts) },
+    { label: 'WINGSPAN', val: prospectA?.ws || '—' },
+  ];
+  const fillerStatsB = [
+    { label: 'PPG', val: fmt(prospectB?.ppg) },
+    { label: 'BPM', val: fmt(prospectB?.bpm) },
+    { label: 'TS%', val: fmtP(prospectB?.ts) },
+    { label: 'WINGSPAN', val: prospectB?.ws || '—' },
   ];
 
   return (
@@ -478,7 +509,12 @@ export default function Compare() {
                   <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 12, color: GOLD, letterSpacing: 2, marginBottom: 4 }}>STAT COMPARISON</div>
                   <NameHeader nameA={nameA} nameB={nameB} />
                 </div>
-                {STAT_ROWS.map(row => (
+                <StatSection label="BASKETBALL" />
+                {BBALL_ROWS.map(row => (
+                  <StatRow key={row.label} label={row.label} valA={row.valA} valB={row.valB} higherBetter={row.higherBetter !== false} />
+                ))}
+                <StatSection label="PHYSICAL MEASUREMENTS" />
+                {PHYS_ROWS.map(row => (
                   <StatRow key={row.label} label={row.label} valA={row.valA} valB={row.valB} higherBetter={row.higherBetter !== false} />
                 ))}
               </div>
@@ -494,7 +530,7 @@ export default function Compare() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 340px 1fr', gap: 0, alignItems: 'stretch' }}>
 
               {/* Left col — Prospect A */}
-              <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRight: 'none', borderRadius: '10px 0 0 10px', overflow: 'hidden' }}>
+              <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRight: 'none', borderRadius: '10px 0 0 10px', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
                 <div style={{ padding: '10px 12px', borderBottom: `1px solid ${BORDER}`, background: DARK, textAlign: 'right' }}>
                   <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: GOLD, letterSpacing: 1 }}>
                     {nameA ? nameA.split(' ').pop().toUpperCase() : 'PROSPECT A'}
@@ -503,13 +539,23 @@ export default function Compare() {
                 {ATTR_KEYS.map((attr) => (
                   <AttrRow key={attr} attr={attr} gradeA={gradesA?.[attr]} gradeB={gradesB?.[attr]} isHovered={hoveredAttr === attr} onHover={setHoveredAttr} descr={ATTR_DESCRIPTIONS[attr]} side="left" />
                 ))}
+                {/* Filler — key stats to fill remaining vertical space */}
+                <div style={{ flex: 1, borderTop: `1px solid ${BORDER}`, background: `${DARK}88`, padding: '10px 12px' }}>
+                  <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: `${MUTED}55`, letterSpacing: 2, marginBottom: 8, textAlign: 'right' }}>KEY STATS</div>
+                  {fillerStatsA.map(({ label, val }) => (
+                    <div key={label} style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
+                      <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: `${MUTED}66`, letterSpacing: 0.5 }}>{label}</span>
+                      <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 13, color: val === '—' ? `${MUTED}33` : GOLD, fontWeight: 600 }}>{val}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
 
               {/* Center — radar */}
               <ComparisonRadar gradesA={gradesA} gradesB={gradesB} nameA={nameA} nameB={nameB} hoveredAttr={hoveredAttr} onHover={setHoveredAttr} />
 
               {/* Right col — Prospect B */}
-              <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderLeft: 'none', borderRadius: '0 10px 10px 0', overflow: 'hidden' }}>
+              <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderLeft: 'none', borderRadius: '0 10px 10px 0', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
                 <div style={{ padding: '10px 12px', borderBottom: `1px solid ${BORDER}`, background: DARK }}>
                   <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 10, color: PURPLE, letterSpacing: 1 }}>
                     {nameB ? nameB.split(' ').pop().toUpperCase() : 'PROSPECT B'}
@@ -518,6 +564,16 @@ export default function Compare() {
                 {ATTR_KEYS.map((attr) => (
                   <AttrRow key={attr} attr={attr} gradeA={gradesA?.[attr]} gradeB={gradesB?.[attr]} isHovered={hoveredAttr === attr} onHover={setHoveredAttr} descr={ATTR_DESCRIPTIONS[attr]} side="right" />
                 ))}
+                {/* Filler — key stats */}
+                <div style={{ flex: 1, borderTop: `1px solid ${BORDER}`, background: `${DARK}88`, padding: '10px 12px' }}>
+                  <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: `${MUTED}55`, letterSpacing: 2, marginBottom: 8 }}>KEY STATS</div>
+                  {fillerStatsB.map(({ label, val }) => (
+                    <div key={label} style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginBottom: 6 }}>
+                      <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 13, color: val === '—' ? `${MUTED}33` : PURPLE, fontWeight: 600 }}>{val}</span>
+                      <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: `${MUTED}66`, letterSpacing: 0.5 }}>{label}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -527,7 +583,12 @@ export default function Compare() {
                 <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 13, color: GOLD, letterSpacing: 2, marginBottom: 6 }}>STAT COMPARISON</div>
                 <NameHeader nameA={nameA} nameB={nameB} />
               </div>
-              {STAT_ROWS.map(row => (
+              <StatSection label="BASKETBALL" />
+              {BBALL_ROWS.map(row => (
+                <StatRow key={row.label} label={row.label} valA={row.valA} valB={row.valB} higherBetter={row.higherBetter !== false} />
+              ))}
+              <StatSection label="PHYSICAL MEASUREMENTS" />
+              {PHYS_ROWS.map(row => (
                 <StatRow key={row.label} label={row.label} valA={row.valA} valB={row.valB} higherBetter={row.higherBetter !== false} />
               ))}
             </div>
