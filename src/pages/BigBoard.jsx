@@ -14,7 +14,7 @@ const CLASSES = ['All', 'Freshman', 'Sophomore', 'Junior', 'Senior', 'Internatio
 const COLS = [
   { col: 'rank', label: 'RANK' },
   { col: 'n', label: 'NAME' },
-  { col: 'combine', label: '⚡', title: 'Combine participant' },
+  { col: 'combine', label: 'CMB', title: 'NBA Combine participant' },
   { col: 'pos', label: 'POS' },
   { col: 'sch', label: 'SCHOOL' },
   { col: 'cls', label: 'CLASS' },
