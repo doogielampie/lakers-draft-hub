@@ -3,6 +3,7 @@ import { PROFILES } from '../data/profiles';
 import { PROSPECT_LOGO } from '../data/draftOrder';
 import { LAL_TARGETS } from '../data/bigboard';
 import Logo from './Logo';
+import ProspectRadar from './ProspectRadar';
 import { GOLD, PURPLE, CARD, SURFACE, BORDER, TEXT, MUTED, DARK } from '../theme';
 import useIsMobile from '../hooks/useIsMobile';
 
@@ -160,11 +161,13 @@ export default function ProspectDrawer({ prospect, onClose }) {
               )}
             </div>
           </div>
+          {/* Data tier badges */}
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {[
               { label: 'Stats', active: true, color: GOLD },
               { label: 'Measurements', active: !!(p.ht || p.ws || p.sr || p.wc), color: '#60a5fa' },
               { label: 'Athleticism', active: !!(p.mv || p.la || p.sp), color: '#60a5fa' },
+              { label: 'Grades', active: isTarget, color: '#a78bfa' },
               { label: 'Research', active: !!(isTarget && prof?.range), color: '#a78bfa' },
               { label: "Mike's Take", active: !!(prof?.take && prof?.credit), color: GOLD },
             ].map(({ label, active, color }) => (
@@ -181,6 +184,8 @@ export default function ProspectDrawer({ prospect, onClose }) {
 
         {/* Body */}
         <div style={{ padding: '20px 28px', flex: 1 }}>
+
+          {/* Level 1 — Stats */}
           <div style={{ marginBottom: 20 }}>
             <SectionLabel>PER GAME</SectionLabel>
             <StatGrid>
@@ -206,48 +211,21 @@ export default function ProspectDrawer({ prospect, onClose }) {
             </StatGrid>
           </div>
 
+          {/* Level 2 — Combine */}
           {hasCombine && (
             <>
               <div style={{ height: 1, background: BORDER, margin: '16px 0' }} />
               <div style={{ marginBottom: 16 }}>
-                <SectionLabel>PHYSICAL MEASUREMENTS</SectionLabel>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                  <SectionLabel>PHYSICAL MEASUREMENTS</SectionLabel>
+                </div>
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 8, marginBottom: 4 }}>
                   {[
                     ['HEIGHT (no shoes)', p.ht, 'NBA Combine'],
                     ['WINGSPAN', p.ws, 'NBA Combine'],
                     ['STANDING REACH', p.sr, 'NBA Combine'],
-                    ['WEIGHT', p.wc ? `${Math.round(p.wc)} lbs` : null, 'NBA Combine'],
-                  ].map(([l, v, src]) => (
-                    <div key={l} style={{ background: SURFACE, borderRadius: 6, padding: '10px 12px' }}>
-                      <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 14, color: TEXT, fontWeight: 600 }}>{v || '—'}</div>
-                      <div style={{ fontSize: 10, color: MUTED, marginTop: 3 }}>{l}</div>
-                      <div style={{ fontSize: 9, color: `${MUTED}88`, marginTop: 2, fontFamily: "'DM Mono', monospace" }}>{src}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-              {(p.mv || p.la || p.sp) && (
-                <div style={{ marginBottom: 16 }}>
-                  <SectionLabel>ATHLETICISM</SectionLabel>
-                  <AthBar label="Max Vert" val={p.mv} unit='"' benchmark={40} lower={false} />
-                  <AthBar label="Lane Agility" val={p.la} unit="s" benchmark={10.5} lower={true} note="lower = faster" />
-                  <AthBar label="3/4 Sprint" val={p.sp} unit="s" benchmark={3.10} lower={true} />
-                  <div style={{ fontSize: 9, color: `${MUTED}88`, fontFamily: "'DM Mono', monospace", marginTop: 4 }}>NBA Combine</div>
-                </div>
-              )}
-            </>
-          )}
-
-          {!hasCombine && (p.htT || p.wtT) && (
-            <>
-              <div style={{ height: 1, background: BORDER, margin: '16px 0' }} />
-              <div style={{ marginBottom: 16 }}>
-                <SectionLabel>PHYSICAL MEASUREMENTS</SectionLabel>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2,1fr)', gap: 8, marginBottom: 4 }}>
-                  {[
-                    ['HEIGHT', p.htT, p.htT],
-                    ['WEIGHT', p.wtT ? `${p.wtT} lbs` : null, null],
-                  ].filter(([,v]) => v).map(([l, v]) => (
+                    ['WEIGHT', p.wc ? `${Math.round(p.wc)} lbs` : p.wtT ? `${p.wtT} lbs` : null, null],
+                  ].filter(([, v]) => v).map(([l, v]) => (
                     <div key={l} style={{ background: SURFACE, borderRadius: 6, padding: '10px 12px', opacity: 0.85 }}>
                       <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 14, color: TEXT, fontWeight: 600 }}>{v}</div>
                       <div style={{ fontSize: 10, color: MUTED, marginTop: 3 }}>{l}</div>
@@ -256,13 +234,29 @@ export default function ProspectDrawer({ prospect, onClose }) {
                   ))}
                 </div>
               </div>
+              <div style={{ marginBottom: 4 }}>
+                <SectionLabel>ATHLETICISM</SectionLabel>
+                <AthBar label="MAX VERTICAL" val={p.mv} unit='"' benchmark={36} note="NBA Combine" />
+                <AthBar label="LANE AGILITY" val={p.la} unit='s' benchmark={10.9} lower note="NBA Combine" />
+                <AthBar label="3/4 SPRINT" val={p.sp} unit='s' benchmark={3.3} lower note="NBA Combine" />
+              </div>
             </>
           )}
 
+          {/* Level 2.5 — Radar (LAL targets only) */}
+          {isTarget && (
+            <>
+              <div style={{ height: 1, background: BORDER, margin: '20px 0 16px' }} />
+              <ProspectRadar prospectName={p.n} />
+            </>
+          )}
+
+          {/* Level 3 — Full scouting profile for LAL targets, or Mike's take for March prospects */}
           {prof && (
             <>
-              <div style={{ height: 1, background: BORDER, margin: '16px 0' }} />
+              <div style={{ height: 1, background: BORDER, margin: '20px 0 16px' }} />
 
+              {/* Full profile for LAL targets */}
               {isTarget && (
                 <>
                   <div style={{ marginBottom: 16 }}>
@@ -310,6 +304,7 @@ export default function ProspectDrawer({ prospect, onClose }) {
                 </>
               )}
 
+              {/* Take — shown for both LAL targets and March article prospects */}
               <div>
                 <SectionLabel>{prof.credit ? "MIKE'S TAKE" : "THE TAKE"}</SectionLabel>
                 <div style={{ borderLeft: `3px solid ${prof.credit ? GOLD : PURPLE}`, paddingLeft: 16, marginBottom: 8 }}>
