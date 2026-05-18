@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { BB, LAL_TARGETS } from '../data/bigboard';
 import { PROSPECT_LOGO } from '../data/draftOrder';
+import { RADAR_GRADES } from '../data/radarGrades';
 import Logo from '../components/Logo';
 import ProspectDrawer from '../components/ProspectDrawer';
 import { GOLD, PURPLE, CARD, BORDER, TEXT, MUTED, SURFACE, DARK } from '../theme';
@@ -15,6 +16,7 @@ const COLS = [
   { col: 'rank', label: 'RANK' },
   { col: 'n', label: 'NAME' },
   { col: 'combine', label: 'COMBINE', title: 'NBA Combine participant' },
+  { col: 'radar', label: 'RADAR', title: 'Scouting grades available (nbadraft.net)' },
   { col: 'pos', label: 'POS' },
   { col: 'sch', label: 'SCHOOL' },
   { col: 'cls', label: 'CLASS' },
@@ -83,7 +85,7 @@ export default function BigBoard() {
             : 'Click any prospect to open their profile. Gold rows = Lakers targets. Shaded = #15–40 scouting window.'}
         </p>
 
-        {/* Filters */}
+        {/* Filters — desktop */}
         {!isMobile && (
           <div style={{ display: 'flex', gap: 16, marginBottom: 20, flexWrap: 'wrap', alignItems: 'center' }}>
             <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
@@ -163,13 +165,19 @@ export default function BigBoard() {
               <thead style={{ background: DARK }}>
                 <tr>
                   {COLS.map(({ col, label, title }) => (
-                    <th key={col} onClick={() => col !== 'combine' && handleSort(col)} title={title} style={{
-                      padding: '10px 14px', textAlign: 'left', fontSize: 10,
-                      fontFamily: "'DM Mono', monospace", color: sortCol === col ? GOLD : MUTED,
-                      cursor: col !== 'combine' ? 'pointer' : 'default', whiteSpace: 'nowrap', userSelect: 'none',
-                      borderBottom: `1px solid ${BORDER}`,
-                    }}>
-                      {label}{col !== 'combine' && <SortIcon col={col} />}
+                    <th
+                      key={col}
+                      onClick={() => col !== 'combine' && col !== 'radar' && handleSort(col)}
+                      title={title}
+                      style={{
+                        padding: '10px 14px', textAlign: 'left', fontSize: 10,
+                        fontFamily: "'DM Mono', monospace", color: sortCol === col ? GOLD : MUTED,
+                        cursor: col !== 'combine' && col !== 'radar' ? 'pointer' : 'default',
+                        whiteSpace: 'nowrap', userSelect: 'none',
+                        borderBottom: `1px solid ${BORDER}`,
+                      }}
+                    >
+                      {label}{col !== 'combine' && col !== 'radar' && <SortIcon col={col} />}
                     </th>
                   ))}
                 </tr>
@@ -178,6 +186,7 @@ export default function BigBoard() {
                 {filtered.map((p, i) => {
                   const isTarget = LAL_TARGETS.includes(p.n);
                   const hasCombine = !!(p.ht || p.ws || p.mv || p.la);
+                  const hasRadar = !!RADAR_GRADES[p.n];
                   const inWindow = p.rank != null && p.rank >= 15 && p.rank <= 40;
                   const rowBg = isTarget ? `${GOLD}14` : inWindow ? `${GOLD}07` : i % 2 === 0 ? CARD : `${CARD}cc`;
                   const logoKey = PROSPECT_LOGO[p.n];
@@ -193,12 +202,14 @@ export default function BigBoard() {
                       onMouseEnter={e => e.currentTarget.style.background = isTarget ? `${GOLD}22` : `${GOLD}0a`}
                       onMouseLeave={e => e.currentTarget.style.background = rowBg}
                     >
+                      {/* Rank */}
                       <td style={{ padding: '9px 14px', fontFamily: "'DM Mono', monospace", fontSize: 12, color: p.rank ? TEXT : MUTED }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                           {inWindow && !isTarget && <span style={{ width: 5, height: 5, borderRadius: '50%', background: `${GOLD}55`, display: 'inline-block' }} />}
                           {p.rd}
                         </div>
                       </td>
+                      {/* Name */}
                       <td style={{ padding: '9px 14px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                           <Logo logoKey={logoKey} size={22} fallback={p.sch} />
@@ -212,15 +223,27 @@ export default function BigBoard() {
                           <span style={{ color: isTarget ? GOLD : TEXT, fontWeight: isTarget ? 600 : 400 }}>{p.n}</span>
                         </div>
                       </td>
+                      {/* Combine dot */}
                       <td style={{ padding: '9px 14px' }}>
-                        {hasCombine ? (
-                          <span title="NBA Combine participant" style={{
-                            display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: '#60a5fa',
-                          }} />
-                        ) : (
-                          <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', background: BORDER }} />
-                        )}
+                        <span
+                          title={hasCombine ? 'NBA Combine participant' : 'No combine data'}
+                          style={{
+                            display: 'inline-block', width: 8, height: 8, borderRadius: '50%',
+                            background: hasCombine ? '#60a5fa' : BORDER,
+                          }}
+                        />
                       </td>
+                      {/* Radar dot */}
+                      <td style={{ padding: '9px 14px' }}>
+                        <span
+                          title={hasRadar ? 'Scouting grades available (nbadraft.net)' : 'No scouting grades yet'}
+                          style={{
+                            display: 'inline-block', width: 8, height: 8, borderRadius: '50%',
+                            background: hasRadar ? `${GOLD}` : BORDER,
+                          }}
+                        />
+                      </td>
+                      {/* Rest of columns */}
                       <td style={{ padding: '9px 14px', color: MUTED, fontSize: 12 }}>{p.pos}</td>
                       <td style={{ padding: '9px 14px', color: MUTED, fontSize: 12, whiteSpace: 'nowrap' }}>{p.sch}</td>
                       <td style={{ padding: '9px 14px', color: MUTED, fontSize: 12 }}>{p.cls}</td>
@@ -244,6 +267,7 @@ export default function BigBoard() {
               const isTarget = LAL_TARGETS.includes(p.n);
               const inWindow = p.rank != null && p.rank >= 15 && p.rank <= 40;
               const hasCombine = !!(p.ht || p.ws || p.mv || p.la);
+              const hasRadar = !!RADAR_GRADES[p.n];
               const logoKey = PROSPECT_LOGO[p.n];
               const cardBg = isTarget ? `${GOLD}14` : inWindow ? `${GOLD}07` : CARD;
               return (
@@ -287,6 +311,23 @@ export default function BigBoard() {
                     <div style={{ fontSize: 11, color: MUTED }}>
                       {p.pos} · {p.sch}
                     </div>
+                    {/* Mobile data dots */}
+                    <div style={{ display: 'flex', gap: 6, marginTop: 5 }}>
+                      {hasCombine && (
+                        <span style={{
+                          fontFamily: "'DM Mono', monospace", fontSize: 9, color: '#60a5fa',
+                          background: '#60a5fa18', border: '1px solid #60a5fa33',
+                          borderRadius: 3, padding: '1px 5px',
+                        }}>COMBINE</span>
+                      )}
+                      {hasRadar && (
+                        <span style={{
+                          fontFamily: "'DM Mono', monospace", fontSize: 9, color: GOLD,
+                          background: `${GOLD}18`, border: `1px solid ${GOLD}33`,
+                          borderRadius: 3, padding: '1px 5px',
+                        }}>RADAR</span>
+                      )}
+                    </div>
                   </div>
 
                   {/* BPM badge */}
@@ -322,7 +363,8 @@ export default function BigBoard() {
               { c: GOLD, l: 'LAL target — click for full scouting profile' },
               { c: `${GOLD}44`, l: '#15–40 Lakers scouting window' },
               { c: '#60a5fa', l: 'NBA Combine participant', dot: true },
-              { c: BORDER, l: 'No combine data', dot: true },
+              { c: GOLD, l: 'Scouting grades (nbadraft.net)', dot: true },
+              { c: BORDER, l: 'No data', dot: true },
             ].map((item, i) => (
               <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 11, color: MUTED }}>
                 <span style={{
