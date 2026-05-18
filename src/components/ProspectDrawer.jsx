@@ -101,21 +101,10 @@ export default function ProspectDrawer({ prospect, onClose }) {
           animation: 'slideIn 0.22s ease-out',
         }}
       >
-        <button
-          onClick={onClose}
-          style={{
-            position: 'absolute', top: 14, right: 14,
-            background: DARK, border: `1px solid ${BORDER}`,
-            color: TEXT, borderRadius: 6, padding: '5px 11px',
-            cursor: 'pointer', fontSize: 16, zIndex: 10, lineHeight: 1,
-            boxShadow: '0 2px 8px rgba(0,0,0,0.5)',
-          }}
-        >×</button>
-
         {/* Header */}
         <div style={{
           background: `linear-gradient(135deg, ${PURPLE}55 0%, ${CARD} 100%)`,
-          padding: '28px 28px 20px', borderBottom: `1px solid ${BORDER}`, flexShrink: 0,
+          padding: '20px 28px', borderBottom: `1px solid ${BORDER}`, flexShrink: 0,
         }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
             <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
@@ -125,14 +114,25 @@ export default function ProspectDrawer({ prospect, onClose }) {
                 <div style={{ color: MUTED, fontSize: 13, marginTop: 4 }}>{p.pos} · {p.sch} · {p.cls} · Age {p.age}</div>
               </div>
             </div>
-            <div style={{ textAlign: 'right' }}>
-              <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 36, color: GOLD, lineHeight: 1 }}>#{p.rd}</div>
-              {isTarget && (
-                <div style={{
-                  background: GOLD, color: '#000', borderRadius: 4,
-                  padding: '2px 8px', fontSize: 11, fontWeight: 700, marginTop: 4, display: 'inline-block',
-                }}>LAL TARGET</div>
-              )}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 8 }}>
+              <button
+                onClick={onClose}
+                style={{
+                  background: DARK, border: `1px solid ${BORDER}`,
+                  color: TEXT, borderRadius: 6, padding: '5px 11px',
+                  cursor: 'pointer', fontSize: 16, lineHeight: 1,
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.5)',
+                }}
+              >×</button>
+              <div style={{ textAlign: 'right' }}>
+                <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 36, color: GOLD, lineHeight: 1 }}>#{p.rd}</div>
+                {isTarget && (
+                  <div style={{
+                    background: GOLD, color: '#000', borderRadius: 4,
+                    padding: '2px 8px', fontSize: 11, fontWeight: 700, marginTop: 4, display: 'inline-block',
+                  }}>LAL TARGET</div>
+                )}
+              </div>
             </div>
           </div>
           {/* Data depth indicator */}
