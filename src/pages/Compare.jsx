@@ -478,7 +478,7 @@ export default function Compare() {
         />
       ))}
       <div style={{ padding: '8px 12px', borderTop: `1px solid ${BORDER}`, background: DARK }}>
-        <div style={{ fontSize: 10, color: `${MUTED}66`, fontFamily: "'DM Mono', monospace', lineHeight: 1.5 }}>
+        <div style={{ fontSize: 10, color: `${MUTED}66`, fontFamily: "'DM Mono', monospace", lineHeight: 1.5 }}>
           Grades computed from BigBoard stats. Percentile-ranked across 130 prospects. Hover any row to see methodology.
         </div>
       </div>
