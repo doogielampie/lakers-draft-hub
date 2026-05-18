@@ -5,6 +5,7 @@ import DraftOrder from './pages/DraftOrder';
 import ClassOverview from './pages/ClassOverview';
 import LakersAt25 from './pages/LakersAt25';
 import BigBoard from './pages/BigBoard';
+import Compare from './pages/Compare';
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
         <Route path="/class-overview" element={<ClassOverview />} />
         <Route path="/lakers-at-25" element={<LakersAt25 />} />
         <Route path="/big-board" element={<BigBoard />} />
+        <Route path="/compare" element={<Compare />} />
       </Routes>
     </div>
   );

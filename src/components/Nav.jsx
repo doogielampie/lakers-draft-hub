@@ -10,6 +10,7 @@ const PAGES = [
   { path: '/class-overview', label: 'Class Overview' },
   { path: '/lakers-at-25', label: 'Lakers at #25' },
   { path: '/big-board', label: 'Big Board' },
+  { path: '/compare', label: 'Compare' },
 ];
 
 export default function Nav() {
