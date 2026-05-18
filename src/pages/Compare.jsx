@@ -5,6 +5,7 @@ import { PROSPECT_LOGO } from '../data/draftOrder';
 import { COMPUTED_GRADES, ATTR_KEYS, ATTR_LABELS, ATTR_DESCRIPTIONS } from '../data/grades';
 import Logo from '../components/Logo';
 import { GOLD, PURPLE, CARD, SURFACE, BORDER, TEXT, MUTED, DARK } from '../theme';
+import PhysicalDiagram from '../components/PhysicalDiagram';
 import useIsMobile from '../hooks/useIsMobile';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -422,16 +423,6 @@ export default function Compare() {
     { label: 'DBPM',   valA: fmt(prospectA?.dbpm), valB: fmt(prospectB?.dbpm) },
   ];
 
-  const PHYS_ROWS = [
-    { label: 'WINGSPAN', valA: prospectA?.ws || '—', valB: prospectB?.ws || '—' },
-    { label: 'HT (NS)',  valA: prospectA?.ht || '—', valB: prospectB?.ht || '—' },
-    { label: 'STD REACH',valA: prospectA?.sr || '—', valB: prospectB?.sr || '—' },
-    { label: 'WEIGHT',   valA: prospectA?.wc != null ? Math.round(prospectA.wc) + ' lbs' : prospectB?.wtT ? prospectA?.wtT + ' lbs' : '—', valB: prospectB?.wc != null ? Math.round(prospectB.wc) + ' lbs' : prospectB?.wtT ? prospectB.wtT + ' lbs' : '—' },
-    { label: 'MAX VERT', valA: prospectA?.mv != null ? prospectA.mv + '"' : '—', valB: prospectB?.mv != null ? prospectB.mv + '"' : '—' },
-    { label: 'LANE AGI', valA: prospectA?.la != null ? prospectA.la + 's' : '—', valB: prospectB?.la != null ? prospectB.la + 's' : '—', higherBetter: false },
-    { label: 'SPRINT',   valA: prospectA?.sp != null ? prospectA.sp + 's' : '—', valB: prospectB?.sp != null ? prospectB.sp + 's' : '—', higherBetter: false },
-  ];
-
   // Filler stats shown at the bottom of each dashboard side column
   const fillerStatsA = [
     { label: 'PPG', val: fmt(prospectA?.ppg) },
@@ -504,19 +495,21 @@ export default function Compare() {
             )}
 
             {activeTab === 'stats' && (
-              <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 10, overflow: 'hidden' }}>
-                <div style={{ padding: '10px 12px 6px', borderBottom: `1px solid ${BORDER}`, background: DARK }}>
-                  <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 12, color: GOLD, letterSpacing: 2, marginBottom: 4 }}>STAT COMPARISON</div>
-                  <NameHeader nameA={nameA} nameB={nameB} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 10, overflow: 'hidden' }}>
+                  <div style={{ padding: '10px 12px 6px', borderBottom: `1px solid ${BORDER}`, background: DARK }}>
+                    <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 12, color: GOLD, letterSpacing: 2, marginBottom: 4 }}>STAT COMPARISON</div>
+                    <NameHeader nameA={nameA} nameB={nameB} />
+                  </div>
+                  <StatSection label="BASKETBALL" />
+                  {BBALL_ROWS.map(row => (
+                    <StatRow key={row.label} label={row.label} valA={row.valA} valB={row.valB} higherBetter={row.higherBetter !== false} />
+                  ))}
                 </div>
-                <StatSection label="BASKETBALL" />
-                {BBALL_ROWS.map(row => (
-                  <StatRow key={row.label} label={row.label} valA={row.valA} valB={row.valB} higherBetter={row.higherBetter !== false} />
-                ))}
-                <StatSection label="PHYSICAL MEASUREMENTS" />
-                {PHYS_ROWS.map(row => (
-                  <StatRow key={row.label} label={row.label} valA={row.valA} valB={row.valB} higherBetter={row.higherBetter !== false} />
-                ))}
+                <PhysicalDiagram
+                  prospectA={prospectA} prospectB={prospectB}
+                  nameA={nameA} nameB={nameB}
+                />
               </div>
             )}
           </>
@@ -577,9 +570,9 @@ export default function Compare() {
               </div>
             </div>
 
-            {/* Stat comparison — full width below */}
-            <div style={{ background: CARD, border: `1px solid ${BORDER}`, borderRadius: 10, overflow: 'hidden' }}>
-              <div style={{ padding: '12px 16px 8px', borderBottom: `1px solid ${BORDER}`, background: DARK }}>
+            {/* Basketball stats */}
+            <div style={{ background: 'transparent', border: `1px solid ${BORDER}`, borderRadius: 10, overflow: 'hidden' }}>
+              <div style={{ padding: '12px 16px 8px', borderBottom: `1px solid ${BORDER}`, background: 'rgba(10,10,15,0.8)' }}>
                 <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 13, color: GOLD, letterSpacing: 2, marginBottom: 6 }}>STAT COMPARISON</div>
                 <NameHeader nameA={nameA} nameB={nameB} />
               </div>
@@ -587,11 +580,13 @@ export default function Compare() {
               {BBALL_ROWS.map(row => (
                 <StatRow key={row.label} label={row.label} valA={row.valA} valB={row.valB} higherBetter={row.higherBetter !== false} />
               ))}
-              <StatSection label="PHYSICAL MEASUREMENTS" />
-              {PHYS_ROWS.map(row => (
-                <StatRow key={row.label} label={row.label} valA={row.valA} valB={row.valB} higherBetter={row.higherBetter !== false} />
-              ))}
             </div>
+
+            {/* Physical diagram */}
+            <PhysicalDiagram
+              prospectA={prospectA} prospectB={prospectB}
+              nameA={nameA} nameB={nameB}
+            />
           </div>
         )}
 
