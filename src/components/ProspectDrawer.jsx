@@ -167,7 +167,7 @@ export default function ProspectDrawer({ prospect, onClose }) {
               { label: 'Stats', active: true, color: GOLD },
               { label: 'Measurements', active: !!(p.ht || p.ws || p.sr || p.wc), color: '#60a5fa' },
               { label: 'Athleticism', active: !!(p.mv || p.la || p.sp), color: '#60a5fa' },
-              { label: 'Grades', active: isTarget, color: '#a78bfa' },
+              { label: 'Grades', active: true, color: '#a78bfa' },
               { label: 'Research', active: !!(isTarget && prof?.range), color: '#a78bfa' },
               { label: "Mike's Take", active: !!(prof?.take && prof?.credit), color: GOLD },
             ].map(({ label, active, color }) => (
@@ -243,13 +243,11 @@ export default function ProspectDrawer({ prospect, onClose }) {
             </>
           )}
 
-          {/* Level 2.5 — Radar (LAL targets only) */}
-          {isTarget && (
-            <>
-              <div style={{ height: 1, background: BORDER, margin: '20px 0 16px' }} />
-              <ProspectRadar prospectName={p.n} />
-            </>
-          )}
+          {/* Level 2.5 — Radar (all prospects) */}
+          <>
+            <div style={{ height: 1, background: BORDER, margin: '20px 0 16px' }} />
+            <ProspectRadar prospectName={p.n} />
+          </>
 
           {/* Level 3 — Full scouting profile for LAL targets, or Mike's take for March prospects */}
           {prof && (
