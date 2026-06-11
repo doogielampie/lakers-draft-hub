@@ -1,257 +1,302 @@
 /**
- * PhysicalDiagram.jsx
- * Human silhouette PNG (438×569) with precise SVG measurement callout overlay.
- * Image anchor points calibrated from pixel analysis:
- *   Raised hand tips:  y=14,  cx=218
- *   Wingspan row:      y=180, left_x=13, right_x=424
- *   Head top (body):   y=97
- *   Torso mid:         y=340
- *   Feet:              y=555
- *   Image center x:    218
- * viewBox matches image: 0 0 438 569, SVG overflow=visible for margin labels.
- * Prospect A = gold = LEFT side labels
- * Prospect B = purple = RIGHT side labels
+ * PhysicalDiagram.jsx — "Dumbbell" physical comparison chart.
+ *
+ * Replaces the old silhouette-PNG callout diagram. Every physical measurement
+ * sits on ONE shared horizontal scale (further-right = stronger): a gold dot
+ * (prospect A) and a purple dot (prospect B) joined by a winner-colored edge
+ * bar. Each prospect's dots are linked into a single connected spine. Metrics
+ * are grouped Frame / Length / Explosiveness.
+ *
+ * Props contract is unchanged: { prospectA, prospectB, nameA, nameB }.
+ * Measurements are read from the existing combine data layer (bigboard.js)
+ * rather than any hardcoded prototype object.
  */
+import { useState } from 'react';
+import { GOLD, PURPLE_LT, BORDER, TEXT, MUTED, DARK } from '../theme';
 
-const GOLD   = '#FDB927';
-const PURPLE = '#552583';
-const MUTED  = '#8a8a9a';
-const BORDER = '#2a2a3a';
-const TEXT   = '#f0f0f0';
+const PANEL_BG = '#08080f';
 
-// ─── Image intrinsic dimensions (pixel-exact) ─────────────────────────────────
-const IW = 438, IH = 569;
-const CX = 218; // center x
+// ─── Layout constants (SVG user units) ────────────────────────────────────────
+const DVW = 880;
+const TX0 = 212, TX1 = 648, TW = TX1 - TX0; // track span
+const CHIP_CX = 770;
+const ROW_H = 50, GRP_GAP = 14, GRP_HEAD = 22, TOP = 50;
 
-// ─── Calibrated anchor points ─────────────────────────────────────────────────
-const REACH_Y      = 14;   // raised hand tips (standing reach)
-const WINGSPAN_Y   = 180;  // outstretched arm row
-const WS_LEFT_X    = 13;   // left fingertip x
-const WS_RIGHT_X   = 424;  // right fingertip x
-const HEAD_TOP_Y   = 97;   // top of head/body at center
-const TORSO_MID_Y  = 340;  // weight callout
-const MAX_VERT_Y   = 440;  // max vertical callout (lower torso)
-const FOOT_Y       = 555;  // ground
+// ─── Metric descriptors ───────────────────────────────────────────────────────
+// higher:true  → bigger value is better
+// higher:false → lower value is better (timed events)
+// dom = [min, max] plausible 2026-class range, used ONLY to normalize dot position
+const PHYS_METRICS = [
+  { key: 'ht', label: 'HEIGHT',         unit: 'no shoes', kind: 'len', dom: [70, 88],     higher: true  },
+  { key: 'ws', label: 'WINGSPAN',       unit: '',         kind: 'len', dom: [74, 92],     higher: true  },
+  { key: 'sr', label: 'STANDING REACH', unit: '',         kind: 'len', dom: [92, 118],    higher: true  },
+  { key: 'wt', label: 'WEIGHT',         unit: 'lbs',      kind: 'wt',  dom: [160, 290],   higher: true  },
+  { key: 'mv', label: 'MAX VERTICAL',   unit: 'in',       kind: 'in',  dom: [27, 46],     higher: true  },
+  { key: 'la', label: 'LANE AGILITY',   unit: 'sec',      kind: 's',   dom: [10.2, 12.0], higher: false },
+  { key: 'sp', label: 'SPRINT 3/4',     unit: 'sec',      kind: 's',   dom: [3.0, 3.65],  higher: false },
+];
 
-// ─── Label rail x positions — outside image edges, SVG overflow:visible ────────
-// These are in viewBox units; the SVG container has horizontal padding so
-// labels don't get clipped by the outer div
-const LEFT_LABEL_X  = -8;  // right-aligned labels on the left
-const RIGHT_LABEL_X = IW + 8; // left-aligned labels on the right
+const GROUPS = [
+  { name: 'FRAME',         keys: ['ht', 'wt'] },
+  { name: 'LENGTH',        keys: ['sr', 'ws'] },
+  { name: 'EXPLOSIVENESS', keys: ['mv', 'la', 'sp'] },
+];
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
-function fmtLen(str) {
-  if (!str || str === '—') return '—';
-  return str.replace(/\s+/g, '');
+const mByKey = (k) => PHYS_METRICS.find((m) => m.key === k);
+
+// ─── Data mapping (combine data → chart shape) ────────────────────────────────
+// App length fields are strings like "6' 4.50''"; convert to { d, v } where
+// v = total inches and d = a clean display string ("6' 4.5\"").
+function parseLen(str) {
+  if (!str || typeof str !== 'string') return null;
+  const m = str.match(/(\d+)\s*'\s*([\d.]+)/);
+  if (!m) return null;
+  const ft = parseInt(m[1], 10);
+  const inch = parseFloat(m[2]);
+  if (Number.isNaN(ft) || Number.isNaN(inch)) return null;
+  const v = ft * 12 + inch;
+  const inchD = Number.isInteger(inch)
+    ? String(inch)
+    : inch.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
+  return { d: `${ft}' ${inchD}"`, v };
 }
-function fmtWeight(p) {
-  if (p?.wc != null) return Math.round(p.wc) + ' lbs';
-  if (p?.wtT != null) return p.wtT + ' lbs';
-  return '—';
+
+// Build the { ht, ws, sr, wt, mv, la, sp } record the chart consumes.
+function toPhys(p) {
+  if (!p) return null;
+  const wt = p.wc != null ? Math.round(p.wc) : (p.wtT != null ? p.wtT : null);
+  return {
+    ht: parseLen(p.ht),
+    ws: parseLen(p.ws),
+    sr: parseLen(p.sr),
+    wt,
+    mv: p.mv != null ? p.mv : null,
+    la: p.la != null ? p.la : null,
+    sp: p.sp != null ? p.sp : null,
+  };
 }
 
-// ─── Horizontal callout: dot at anchor → dashed line to rail → label ──────────
-// side: 'left' (gold, label right-aligned at LEFT_LABEL_X)
-//       'right' (purple, label left-aligned at RIGHT_LABEL_X)
-function HCallout({ anchorX, anchorY, side, valueLine, statLabel }) {
-  const color  = side === 'left' ? GOLD : PURPLE;
-  const railX  = side === 'left' ? LEFT_LABEL_X  : RIGHT_LABEL_X;
-  const anchor = side === 'left' ? 'end'          : 'start';
+// ─── Core helpers (chart depends on normMetric) ───────────────────────────────
+function normMetric(m, val) {
+  const [lo, hi] = m.dom;
+  let t = Math.min(1, Math.max(0, (val - lo) / (hi - lo)));
+  return m.higher ? t : 1 - t; // invert for timed events
+}
+function metricVal(m, p) {
+  const val = p[m.key];
+  if (val == null) return null;
+  return m.kind === 'len' ? val.v : val;
+}
+function fmtMetric(m, p) {
+  const val = p[m.key];
+  if (val == null) return '—';
+  if (m.kind === 'len') return val.d;       // "6' 4.5\""
+  if (m.kind === 'wt')  return val + ' lbs';
+  if (m.kind === 'in')  return val + '"';
+  if (m.kind === 's')   return val.toFixed(2) + 's';
+  return String(val);
+}
+function metricWinner(m, A, B) {            // 'A' | 'B' | 'tie'
+  const va = metricVal(m, A), vb = metricVal(m, B);
+  if (va === vb) return 'tie';
+  return (m.higher ? va > vb : va < vb) ? 'A' : 'B';
+}
+function metricDelta(m, A, B) {             // absolute gap, formatted with unit
+  const d = Math.abs(metricVal(m, A) - metricVal(m, B));
+  if (m.kind === 'len' || m.kind === 'in')
+    return (Number.isInteger(d) ? d : d.toFixed(2).replace(/0+$/, '').replace(/\.$/, '')) + '"';
+  if (m.kind === 'wt') return Math.round(d) + ' lbs';
+  if (m.kind === 's')  return d.toFixed(2) + 's';
+  return String(d);
+}
 
+// ─── Panel chrome ─────────────────────────────────────────────────────────────
+function PanelChrome() {
+  const corners = [
+    { top: 10, left: 10,  borderTop: `1px solid ${GOLD}55`, borderLeft: `1px solid ${GOLD}55` },
+    { top: 10, right: 10, borderTop: `1px solid ${GOLD}55`, borderRight: `1px solid ${GOLD}55` },
+    { bottom: 10, left: 10,  borderBottom: `1px solid ${GOLD}55`, borderLeft: `1px solid ${GOLD}55` },
+    { bottom: 10, right: 10, borderBottom: `1px solid ${GOLD}55`, borderRight: `1px solid ${GOLD}55` },
+  ];
   return (
-    <g>
-      {/* Anchor dot on figure */}
-      <circle cx={anchorX} cy={anchorY} r={2.5} fill={`${color}99`} />
-      {/* Dashed line to margin */}
-      <line x1={anchorX} y1={anchorY} x2={railX} y2={anchorY}
-        stroke={`${color}55`} strokeWidth={0.8} strokeDasharray="4,5" />
-      {/* Terminal dot */}
-      <circle cx={railX} cy={anchorY} r={2} fill={`${color}88`} />
-      {/* Value */}
-      <text x={railX} y={anchorY - 6} textAnchor={anchor}
-        fontFamily="'DM Mono', monospace" fontSize={13}
-        fill={color} fontWeight={700}>{valueLine}</text>
-      {/* Stat label */}
-      <text x={railX} y={anchorY + 9} textAnchor={anchor}
-        fontFamily="'DM Mono', monospace" fontSize={9}
-        fill={`${MUTED}88`} letterSpacing={0.5}>{statLabel}</text>
-    </g>
+    <>
+      <div style={{
+        position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 2,
+        backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,255,255,0.008) 3px, rgba(255,255,255,0.008) 6px)',
+      }} />
+      {corners.map((st, i) => (
+        <div key={i} style={{ position: 'absolute', width: 18, height: 18, zIndex: 3, ...st }} />
+      ))}
+    </>
   );
 }
 
-// ─── Vertical bracket for height ──────────────────────────────────────────────
-function VBracket({ side, y1, y2, valueLabel }) {
-  const color  = side === 'left' ? GOLD : PURPLE;
-  // bracket x: just outside the image bounds
-  const bx     = side === 'left' ? LEFT_LABEL_X + 14 : RIGHT_LABEL_X - 14;
-  const tx     = side === 'left' ? LEFT_LABEL_X       : RIGHT_LABEL_X;
-  const anchor = side === 'left' ? 'end'               : 'start';
-  const midY   = (y1 + y2) / 2;
-
+function PhysHeader({ labelA, labelB }) {
   return (
-    <g>
-      {/* Vertical line */}
-      <line x1={bx} y1={y1} x2={bx} y2={y2}
-        stroke={`${color}55`} strokeWidth={1} />
-      {/* Top cap */}
-      <line x1={bx - 5} y1={y1} x2={bx + 5} y2={y1}
-        stroke={`${color}77`} strokeWidth={1} />
-      {/* Bottom cap */}
-      <line x1={bx - 5} y1={y2} x2={bx + 5} y2={y2}
-        stroke={`${color}77`} strokeWidth={1} />
-      {/* Value */}
-      <text x={tx} y={midY - 7} textAnchor={anchor}
-        fontFamily="'DM Mono', monospace" fontSize={13}
-        fill={color} fontWeight={700}>{valueLabel}</text>
-      {/* Label */}
-      <text x={tx} y={midY + 9} textAnchor={anchor}
-        fontFamily="'DM Mono', monospace" fontSize={9}
-        fill={`${MUTED}88`} letterSpacing={0.5}>HEIGHT</text>
-    </g>
+    <div style={{
+      display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+      padding: '14px 24px 10px', position: 'relative', zIndex: 3,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1 }}>
+        <span style={{ width: 16, height: 2, background: GOLD, display: 'inline-block', borderRadius: 1 }} />
+        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: GOLD, letterSpacing: 1 }}>{labelA}</span>
+      </div>
+      <div style={{ textAlign: 'center' }}>
+        <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 15, color: MUTED, letterSpacing: 3, whiteSpace: 'nowrap' }}>PHYSICAL EDGE</div>
+        <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 8, color: `${MUTED}66`, letterSpacing: 2, marginTop: 2, whiteSpace: 'nowrap' }}>ONE SCALE · FURTHER RIGHT = STRONGER</div>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flex: 1, justifyContent: 'flex-end' }}>
+        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: PURPLE_LT, letterSpacing: 1 }}>{labelB}</span>
+        <span style={{ width: 16, height: 2, background: PURPLE_LT, display: 'inline-block', borderRadius: 1 }} />
+      </div>
+    </div>
   );
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
 export default function PhysicalDiagram({ prospectA, prospectB, nameA, nameB }) {
+  const [hoveredMetric, setHoveredMetric] = useState(null);
+
   const labelA = nameA ? nameA.split(' ').pop().toUpperCase() : 'A';
   const labelB = nameB ? nameB.split(' ').pop().toUpperCase() : 'B';
 
-  const htA = fmtLen(prospectA?.ht);
-  const htB = fmtLen(prospectB?.ht);
-  const wsA = fmtLen(prospectA?.ws);
-  const wsB = fmtLen(prospectB?.ws);
-  const srA = fmtLen(prospectA?.sr);
-  const srB = fmtLen(prospectB?.sr);
-  const wtA = fmtWeight(prospectA);
-  const wtB = fmtWeight(prospectB);
-  const mvA = prospectA?.mv != null ? `${prospectA.mv}"` : '—';
-  const mvB = prospectB?.mv != null ? `${prospectB.mv}"` : '—';
+  const A = toPhys(prospectA);
+  const B = toPhys(prospectB);
+
+  // ─── Layout pass ──────────────────────────────────────────────────────────
+  const rows = [];
+  const groupLabels = [];
+  let y = TOP;
+  let firstGroup = true;
+
+  if (A && B) {
+    GROUPS.forEach((g) => {
+      const keys = g.keys.filter((k) => {
+        const m = mByKey(k);
+        return metricVal(m, A) != null && metricVal(m, B) != null;
+      });
+      if (keys.length === 0) return;
+      if (!firstGroup) y += GRP_GAP;
+      firstGroup = false;
+      groupLabels.push({ name: g.name, y });
+      y += GRP_HEAD;
+      keys.forEach((k) => {
+        const m = mByKey(k);
+        const posA = TX0 + normMetric(m, metricVal(m, A)) * TW;
+        const posB = TX0 + normMetric(m, metricVal(m, B)) * TW;
+        const win = metricWinner(m, A, B);
+        rows.push({ m, y: y + ROW_H / 2, posA, posB, win });
+        y += ROW_H;
+      });
+    });
+  }
+  const H = y + 16;
+
+  const goldPts = rows.map((r) => `${r.posA},${r.y}`).join(' ');
+  const purplePts = rows.map((r) => `${r.posB},${r.y}`).join(' ');
+
+  let aw = 0, bw = 0;
+  rows.forEach((r) => { if (r.win === 'A') aw++; else if (r.win === 'B') bw++; });
+
+  const empty = rows.length === 0;
 
   return (
     <div style={{
-      background: '#08080f',
-      border: `1px solid ${BORDER}`,
-      borderRadius: 14,
-      overflow: 'hidden',
-      position: 'relative',
+      background: PANEL_BG, border: `1px solid ${BORDER}`, borderRadius: 14,
+      overflow: 'hidden', position: 'relative',
     }}>
-      {/* Scanlines */}
-      <div style={{
-        position: 'absolute', inset: 0, pointerEvents: 'none', zIndex: 2,
-        backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(255,255,255,0.006) 3px, rgba(255,255,255,0.006) 6px)',
-      }} />
-      {/* Corner brackets */}
-      {[
-        { top: 8,    left: 8,   borderTop:    `1px solid ${GOLD}44`, borderLeft:   `1px solid ${GOLD}44` },
-        { top: 8,    right: 8,  borderTop:    `1px solid ${GOLD}44`, borderRight:  `1px solid ${GOLD}44` },
-        { bottom: 8, left: 8,   borderBottom: `1px solid ${GOLD}44`, borderLeft:   `1px solid ${GOLD}44` },
-        { bottom: 8, right: 8,  borderBottom: `1px solid ${GOLD}44`, borderRight:  `1px solid ${GOLD}44` },
-      ].map((s, i) => (
-        <div key={i} style={{ position: 'absolute', width: 18, height: 18, zIndex: 3, ...s }} />
-      ))}
+      <PanelChrome />
+      <PhysHeader labelA={labelA} labelB={labelB} />
 
-      {/* Header */}
-      <div style={{
-        display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        padding: '12px 24px 8px', position: 'relative', zIndex: 3,
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ width: 16, height: 2, background: GOLD, display: 'inline-block', borderRadius: 1 }} />
-          <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: GOLD, letterSpacing: 1 }}>{labelA}</span>
+      <div style={{ padding: '0 6px' }}>
+        {empty ? (
+          <div style={{
+            padding: '40px 0 48px', textAlign: 'center',
+            fontFamily: "'DM Mono', monospace", fontSize: 11, color: `${MUTED}99`, letterSpacing: 1,
+          }}>
+            NO COMBINE MEASUREMENTS AVAILABLE FOR THIS MATCHUP
+          </div>
+        ) : (
+          <svg viewBox={`0 0 ${DVW} ${H}`} width="100%" style={{ display: 'block' }}>
+            {/* scale legend (learned once) */}
+            <text x={TX0} y={30} fontFamily="'DM Mono', monospace" fontSize="8.5" fill={`${MUTED}88`} letterSpacing="1">◄ WEAKER</text>
+            <text x={TX1} y={30} textAnchor="end" fontFamily="'DM Mono', monospace" fontSize="8.5" fill={`${MUTED}88`} letterSpacing="1">STRONGER ►</text>
+            <text x={CHIP_CX} y={30} textAnchor="middle" fontFamily="'DM Mono', monospace" fontSize="8.5" fill={`${MUTED}66`} letterSpacing="1">EDGE</text>
+
+            {/* group headers + hairline rules */}
+            {groupLabels.map((g) => (
+              <g key={g.name}>
+                <text x={28} y={g.y + GRP_HEAD - 6} fontFamily="'Bebas Neue', sans-serif" fontSize="14" fill={`${MUTED}cc`} letterSpacing="2">{g.name}</text>
+                <line x1={120} y1={g.y + GRP_HEAD - 11} x2={DVW - 24} y2={g.y + GRP_HEAD - 11} stroke={`${BORDER}66`} strokeWidth="1" />
+              </g>
+            ))}
+
+            {/* connected spines (each player as one shape) */}
+            <polyline points={goldPts} fill="none" stroke={GOLD} strokeWidth="2" opacity={hoveredMetric ? 0.12 : 0.28} strokeLinejoin="round" />
+            <polyline points={purplePts} fill="none" stroke={PURPLE_LT} strokeWidth="2" opacity={hoveredMetric ? 0.12 : 0.28} strokeLinejoin="round" />
+
+            {/* rows */}
+            {rows.map((r) => {
+              const m = r.m;
+              const dim = hoveredMetric && hoveredMetric !== m.key;
+              const leftX = Math.min(r.posA, r.posB), rightX = Math.max(r.posA, r.posB);
+              const winColor = r.win === 'B' ? PURPLE_LT : GOLD;
+              const aWin = r.win === 'A', bWin = r.win === 'B';
+              const inverted = m.higher === false;
+              const subLabel = inverted ? 'LOWER = FASTER' : (m.unit ? m.unit.toUpperCase() : '');
+              const winLast = r.win === 'A' ? labelA : labelB;
+              const chipTxt = r.win === 'tie' ? 'EVEN' : `${winLast}  +${metricDelta(m, A, B)}`;
+              const chipW = Math.min(196, chipTxt.length * 6.6 + 18);
+              return (
+                <g key={m.key} opacity={dim ? 0.32 : 1} style={{ transition: 'opacity .15s' }}>
+                  {/* hover hit area + highlight */}
+                  <rect x={20} y={r.y - ROW_H / 2 + 2} width={DVW - 40} height={ROW_H - 4} rx="6"
+                    fill={hoveredMetric === m.key ? 'rgba(255,255,255,0.03)' : 'transparent'}
+                    onMouseEnter={() => setHoveredMetric(m.key)} onMouseLeave={() => setHoveredMetric(null)} />
+
+                  {/* metric label + sub-label */}
+                  <text x={188} y={r.y - 2} textAnchor="end" fontFamily="'DM Mono', monospace" fontSize="11" fill={hoveredMetric === m.key ? TEXT : `${MUTED}dd`} letterSpacing="0.5" style={{ pointerEvents: 'none' }}>{m.label}</text>
+                  <text x={188} y={r.y + 11} textAnchor="end" fontFamily="'DM Mono', monospace" fontSize="7.5" fill={`${MUTED}77`} letterSpacing="0.5" style={{ pointerEvents: 'none' }}>{subLabel}</text>
+
+                  {/* full-scale track */}
+                  <line x1={TX0} y1={r.y} x2={TX1} y2={r.y} stroke={`${BORDER}cc`} strokeWidth="2" strokeLinecap="round" style={{ pointerEvents: 'none' }} />
+                  {/* edge connector (winner-colored) */}
+                  <line x1={leftX} y1={r.y} x2={rightX} y2={r.y} stroke={winColor} strokeWidth="5" strokeLinecap="round" opacity={r.win === 'tie' ? 0.3 : 0.92} style={{ pointerEvents: 'none' }} />
+
+                  {/* dots */}
+                  <circle cx={r.posA} cy={r.y} r={aWin ? 7.5 : 6} fill={GOLD} stroke="#08080f" strokeWidth="2" style={{ pointerEvents: 'none', filter: aWin && hoveredMetric === m.key ? `drop-shadow(0 0 5px ${GOLD})` : 'none' }} />
+                  <circle cx={r.posB} cy={r.y} r={bWin ? 7.5 : 6} fill={PURPLE_LT} stroke="#08080f" strokeWidth="2" style={{ pointerEvents: 'none', filter: bWin && hoveredMetric === m.key ? `drop-shadow(0 0 5px ${PURPLE_LT})` : 'none' }} />
+
+                  {/* value labels — gold above, purple below (consistent) */}
+                  <text x={r.posA} y={r.y - 13} textAnchor="middle" fontFamily="'DM Mono', monospace" fontSize="12" fontWeight={aWin ? 600 : 400} fill={aWin ? GOLD : `${GOLD}cc`} style={{ pointerEvents: 'none' }}>{fmtMetric(m, A)}</text>
+                  <text x={r.posB} y={r.y + 21} textAnchor="middle" fontFamily="'DM Mono', monospace" fontSize="12" fontWeight={bWin ? 600 : 400} fill={bWin ? PURPLE_LT : `${PURPLE_LT}cc`} style={{ pointerEvents: 'none' }}>{fmtMetric(m, B)}</text>
+
+                  {/* edge chip */}
+                  <g style={{ pointerEvents: 'none' }}>
+                    <rect x={CHIP_CX - chipW / 2} y={r.y - 10} width={chipW} height="20" rx="4"
+                      fill={r.win === 'tie' ? 'transparent' : `${winColor}1f`} stroke={r.win === 'tie' ? BORDER : `${winColor}66`} strokeWidth="1" />
+                    <text x={CHIP_CX} y={r.y + 4} textAnchor="middle" fontFamily="'DM Mono', monospace" fontSize="10" fontWeight="500" fill={r.win === 'tie' ? `${MUTED}99` : winColor} letterSpacing="0.5">{chipTxt}</text>
+                  </g>
+                </g>
+              );
+            })}
+          </svg>
+        )}
+      </div>
+
+      {/* tally footer */}
+      {!empty && (
+        <div style={{ display: 'flex', alignItems: 'stretch', borderTop: `1px solid ${BORDER}`, background: DARK }}>
+          <div style={{ flex: aw, padding: '12px 20px', background: `${GOLD}10`, display: 'flex', alignItems: 'center', gap: 10, transition: 'flex .3s' }}>
+            <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 26, color: GOLD, lineHeight: 1 }}>{aw}</span>
+            <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: `${GOLD}bb`, letterSpacing: 1 }}>EDGES · {labelA}</span>
+          </div>
+          <div style={{ flex: bw, padding: '12px 20px', background: `${PURPLE_LT}14`, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 10, transition: 'flex .3s' }}>
+            <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: `${PURPLE_LT}cc`, letterSpacing: 1 }}>EDGES · {labelB}</span>
+            <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 26, color: PURPLE_LT, lineHeight: 1 }}>{bw}</span>
+          </div>
         </div>
-        <span style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 13, color: `${MUTED}66`, letterSpacing: 3 }}>
-          PHYSICAL PROFILE
-        </span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: PURPLE, letterSpacing: 1 }}>{labelB}</span>
-          <span style={{ width: 16, height: 2, background: PURPLE, display: 'inline-block', borderRadius: 1 }} />
-        </div>
-      </div>
-
-      {/* PNG + SVG overlay — horizontal padding gives room for labels */}
-      <div style={{
-        position: 'relative',
-        padding: '0 120px', // room for labels on each side
-        boxSizing: 'border-box',
-      }}>
-        {/* Silhouette */}
-        <img
-          src="/lakers-draft-hub/human_silhouette.png"
-          alt="Human silhouette"
-          style={{ width: '100%', display: 'block' }}
-        />
-
-        {/* SVG overlay — viewBox matches image pixels exactly */}
-        <svg
-          viewBox={`0 0 ${IW} ${IH}`}
-          style={{
-            position: 'absolute',
-            // inset must account for the 120px left/right padding
-            top: 0, bottom: 0,
-            left: '120px', right: '120px',
-            width: 'calc(100% - 240px)',
-            height: '100%',
-            overflow: 'visible', // labels spill into padding area
-          }}
-        >
-          {/* ── 1. STANDING REACH — raised hand tips, top of figure ───────── */}
-          <HCallout
-            anchorX={CX - 30} anchorY={REACH_Y}
-            side="left" valueLine={srA} statLabel="STD REACH"
-          />
-          <HCallout
-            anchorX={CX + 30} anchorY={REACH_Y}
-            side="right" valueLine={srB} statLabel="STD REACH"
-          />
-
-          {/* ── 2. HEIGHT — vertical bracket, left (A) and right (B) ──────── */}
-          <VBracket side="left"  y1={HEAD_TOP_Y} y2={FOOT_Y} valueLabel={htA} />
-          <VBracket side="right" y1={HEAD_TOP_Y} y2={FOOT_Y} valueLabel={htB} />
-
-          {/* ── 3. WINGSPAN — labels at each outstretched fingertip ───────── */}
-          {/* Subtle dashed span line */}
-          <line
-            x1={WS_LEFT_X} y1={WINGSPAN_Y}
-            x2={WS_RIGHT_X} y2={WINGSPAN_Y}
-            stroke={`${MUTED}1a`} strokeWidth={0.6} strokeDasharray="3,7"
-          />
-          <HCallout
-            anchorX={WS_LEFT_X} anchorY={WINGSPAN_Y}
-            side="left" valueLine={wsA} statLabel="WINGSPAN"
-          />
-          <HCallout
-            anchorX={WS_RIGHT_X} anchorY={WINGSPAN_Y}
-            side="right" valueLine={wsB} statLabel="WINGSPAN"
-          />
-
-          {/* ── 4. WEIGHT — torso mid ─────────────────────────────────────── */}
-          <HCallout
-            anchorX={CX - 45} anchorY={TORSO_MID_Y}
-            side="left" valueLine={wtA} statLabel="WEIGHT"
-          />
-          <HCallout
-            anchorX={CX + 45} anchorY={TORSO_MID_Y}
-            side="right" valueLine={wtB} statLabel="WEIGHT"
-          />
-
-          {/* ── 5. MAX VERTICAL — lower torso ────────────────────────────── */}
-          <HCallout
-            anchorX={CX - 45} anchorY={MAX_VERT_Y}
-            side="left" valueLine={mvA} statLabel="MAX VERT"
-          />
-          <HCallout
-            anchorX={CX + 45} anchorY={MAX_VERT_Y}
-            side="right" valueLine={mvB} statLabel="MAX VERT"
-          />
-        </svg>
-      </div>
-
-      {/* Footer */}
-      <div style={{ textAlign: 'center', padding: '8px 0 12px', position: 'relative', zIndex: 3 }}>
-        <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 9, color: `${MUTED}33`, letterSpacing: 1 }}>
-          NBA COMBINE · NO-SHOES HEIGHT
-        </span>
-      </div>
+      )}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 export const GOLD = '#FDB927';
 export const PURPLE = '#552583';
+export const PURPLE_LT = '#a585e6'; // legible purple on near-black (Prospect B)
 export const DARK = '#0a0a0f';
 export const SURFACE = '#12121a';
 export const CARD = '#1a1a26';
