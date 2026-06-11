@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { BB, LAL_TARGETS } from '../data/bigboard';
+import { BB, LAL_TARGETS, LAL_WORKOUT_NAMES } from '../data/bigboard';
 import { PROSPECT_LOGO } from '../data/draftOrder';
 import { RADAR_GRADES } from '../data/radarGrades';
 import Logo from '../components/Logo';
@@ -221,6 +221,7 @@ export default function BigBoard() {
               <tbody>
                 {filtered.map((p, i) => {
                   const isTarget = LAL_TARGETS.includes(p.n);
+                  const workedOut = LAL_WORKOUT_NAMES.has(p.n);
                   const hasCombine = !!(p.ht || p.ws || p.mv || p.la);
                   const hasRadar = !!RADAR_GRADES[p.n];
                   const inWindow = p.rank != null && p.rank >= 15 && p.rank <= 40;
@@ -257,6 +258,13 @@ export default function BigBoard() {
                             }}>LAL</span>
                           )}
                           <span style={{ color: isTarget ? GOLD : TEXT, fontWeight: isTarget ? 600 : 400 }}>{p.n}</span>
+                          {workedOut && (
+                            <span title="Worked out for the Lakers" style={{
+                              background: `${GOLD}22`, color: GOLD, border: `1px solid ${GOLD}66`, borderRadius: 3,
+                              padding: '1px 5px', fontSize: 9, fontWeight: 700,
+                              fontFamily: "'DM Mono', monospace", flexShrink: 0,
+                            }}>WKT</span>
+                          )}
                         </div>
                       </td>
                       {/* Combine dot */}
@@ -301,6 +309,7 @@ export default function BigBoard() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
             {filtered.map((p, i) => {
               const isTarget = LAL_TARGETS.includes(p.n);
+              const workedOut = LAL_WORKOUT_NAMES.has(p.n);
               const inWindow = p.rank != null && p.rank >= 15 && p.rank <= 40;
               const hasCombine = !!(p.ht || p.ws || p.mv || p.la);
               const hasRadar = !!RADAR_GRADES[p.n];
@@ -343,6 +352,13 @@ export default function BigBoard() {
                         color: isTarget ? GOLD : TEXT, fontWeight: isTarget ? 600 : 500,
                         fontSize: 14, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                       }}>{p.n}</span>
+                      {workedOut && (
+                        <span title="Worked out for the Lakers" style={{
+                          background: `${GOLD}22`, color: GOLD, border: `1px solid ${GOLD}66`, borderRadius: 3,
+                          padding: '1px 5px', fontSize: 8, fontWeight: 700,
+                          fontFamily: "'DM Mono', monospace", flexShrink: 0,
+                        }}>WKT</span>
+                      )}
                     </div>
                     <div style={{ fontSize: 11, color: MUTED }}>
                       {p.pos} · {p.sch}
@@ -397,6 +413,7 @@ export default function BigBoard() {
           <div style={{ display: 'flex', gap: 16, marginTop: 12, flexWrap: 'wrap' }}>
             {[
               { c: GOLD, l: 'LAL target — click for full scouting profile' },
+              { c: `${GOLD}44`, l: 'WKT chip — reported Lakers pre-draft workout' },
               { c: `${GOLD}44`, l: '#15–40 Lakers scouting window' },
               { c: '#60a5fa', l: 'NBA Combine participant', dot: true },
               { c: GOLD, l: 'Scouting grades (nbadraft.net)', dot: true },

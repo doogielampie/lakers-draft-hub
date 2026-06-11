@@ -1,5 +1,10 @@
 import { GOLD, CARD, BORDER, TEXT, MUTED } from '../theme';
+import { BB, LAL_TARGETS, LAL_WORKOUTS } from '../data/bigboard';
+import { PROSPECT_LOGO } from '../data/draftOrder';
+import Logo from '../components/Logo';
 import useIsMobile from '../hooks/useIsMobile';
+
+const BOARD_NAMES = new Set(BB.map(p => p.n));
 
 const PANELS = [
   {
@@ -44,6 +49,53 @@ export default function LakersAt25() {
             <p style={{ color: MUTED, lineHeight: 1.8, fontSize: 13, margin: 0 }}>{item.b}</p>
           </div>
         ))}
+      </div>
+
+      {/* Pre-draft workout tracker */}
+      <div style={{ marginTop: 32 }}>
+        <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: isMobile ? 22 : 28, letterSpacing: 1, color: TEXT, marginBottom: 6 }}>
+          PRE-DRAFT WORKOUTS
+        </div>
+        <p style={{ color: MUTED, fontSize: 13, lineHeight: 1.7, margin: '0 0 16px', maxWidth: 760 }}>
+          The Lakers no longer announce workouts publicly, so this tracks every prospect reported — by the player or by beat
+          reporters — to have worked out or interviewed for the front office. Names already on our big board are highlighted in gold.
+          Source: <span style={{ color: TEXT }}>Silver Screen and Roll</span> workout tracker, updated June 8, 2026.
+        </p>
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(auto-fill, minmax(220px, 1fr))',
+          gap: 8,
+        }}>
+          {LAL_WORKOUTS.map(w => {
+            const onBoard = BOARD_NAMES.has(w.n);
+            const isTarget = LAL_TARGETS.includes(w.n);
+            return (
+              <div key={w.n} style={{
+                display: 'flex', alignItems: 'center', gap: 9,
+                background: CARD, border: `1px solid ${onBoard ? `${GOLD}66` : BORDER}`,
+                borderLeft: `3px solid ${onBoard ? GOLD : BORDER}`,
+                borderRadius: '0 6px 6px 0', padding: '9px 12px', minWidth: 0,
+              }}>
+                <Logo logoKey={PROSPECT_LOGO[w.n]} size={22} fallback={w.sch} />
+                <div style={{ minWidth: 0 }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+                    <span style={{
+                      color: onBoard ? GOLD : TEXT, fontSize: 13, fontWeight: onBoard ? 600 : 400,
+                      whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis',
+                    }}>{w.n}</span>
+                    {isTarget && (
+                      <span style={{
+                        background: GOLD, color: '#000', borderRadius: 3, padding: '0 4px',
+                        fontSize: 8, fontWeight: 700, fontFamily: "'DM Mono', monospace", flexShrink: 0,
+                      }}>TARGET</span>
+                    )}
+                  </div>
+                  <div style={{ color: MUTED, fontSize: 11, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{w.sch}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

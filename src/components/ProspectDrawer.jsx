@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { PROFILES } from '../data/profiles';
 import { PROSPECT_LOGO } from '../data/draftOrder';
-import { LAL_TARGETS } from '../data/bigboard';
+import { LAL_TARGETS, LAL_WORKOUT_NAMES } from '../data/bigboard';
 import Logo from './Logo';
 import ProspectRadar from './ProspectRadar';
 import { GOLD, PURPLE, CARD, SURFACE, BORDER, TEXT, MUTED, DARK } from '../theme';
@@ -85,6 +85,7 @@ export default function ProspectDrawer({ prospect, onClose }) {
 
   const p = prospect;
   const isTarget = LAL_TARGETS.includes(p.n);
+  const workedOut = LAL_WORKOUT_NAMES.has(p.n);
   const hasCombine = !!(p.ht || p.ws || p.mv || p.la);
   const prof = PROFILES[p.n];
   const logoKey = PROSPECT_LOGO[p.n];
@@ -158,6 +159,13 @@ export default function ProspectDrawer({ prospect, onClose }) {
                   background: GOLD, color: '#000', borderRadius: 4,
                   padding: '2px 8px', fontSize: 11, fontWeight: 700, marginTop: 4, display: 'inline-block',
                 }}>LAL TARGET</div>
+              )}
+              {workedOut && (
+                <div style={{
+                  background: `${GOLD}22`, color: GOLD, border: `1px solid ${GOLD}88`, borderRadius: 4,
+                  padding: '2px 8px', fontSize: 11, fontWeight: 700, marginTop: 4, display: 'block',
+                  whiteSpace: 'nowrap', marginLeft: 'auto', width: 'fit-content',
+                }}>LAL WORKOUT</div>
               )}
             </div>
           </div>

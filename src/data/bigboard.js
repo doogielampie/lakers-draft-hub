@@ -1,6 +1,29 @@
 // Tankathon Big Board + NBA Draft Combine data
 const LAL_TARGETS=["Cameron Carr","Joshua Jefferson","Henri Veesaar","Amari Allen","Zuby Ejiofor","Isaiah Evans","Juke Harris","Tarris Reed Jr.","Billy Richmond III","Rueben Chinyelu","Bruce Thornton","Richie Saunders"];
 
+// Prospects the Lakers have reportedly worked out or interviewed for the 2026 draft.
+// The team no longer announces workouts, so this is sourced from players/reporters.
+// Source: Silver Screen and Roll workout tracker (Jacob Rude), updated June 8, 2026.
+const LAL_WORKOUTS=[
+  {n:"Sam Alexis",sch:"Indiana"},
+  {n:"Drake Allen",sch:"Utah State"},
+  {n:"Duke Brennan",sch:"Villanova"},
+  {n:"Rafael Castro",sch:"George Washington"},
+  {n:"Zuby Ejiofor",sch:"St. John's"},
+  {n:"Jaden Henley",sch:"Grand Canyon"},
+  {n:"Alex Karaban",sch:"UConn"},
+  {n:"Keba Keita",sch:"BYU"},
+  {n:"Baba Miller",sch:"Cincinnati"},
+  {n:"Mike Sharavjamts",sch:"South Carolina"},
+  {n:"Peter Suder",sch:"Miami (OH)"},
+  {n:"Marquel Sutton",sch:"LSU"},
+  {n:"Mohamed Wague",sch:"Oklahoma"},
+  {n:"Skyy Clark",sch:"UCLA"},
+  {n:"Trey Kaufman-Renn",sch:"Purdue"},
+  {n:"Tamin Lipsey",sch:"Iowa State"},
+];
+const LAL_WORKOUT_NAMES=new Set(LAL_WORKOUTS.map(w=>w.n));
+
 const BB=[{"rank":1,"rd":"1","n":"Cameron Boozer","pos":"PF","sch":"Duke","cls":"Freshman","age":18.9,"htT":"6'9.5","wtT":253,"ppg":22.5,"rpg":10.2,"apg":4.1,"bpg":0.6,"spg":1.4,"ts":0.653,"usg":29.9,"bpm":18.7,"obpm":12.7,"dbpm":6,"p36p":26.3,"p36r":11.9,"p36a":4.8,"p36b":0.7,"p36s":1.6,"ws":"7' 1.50''","ht":"6' 8.25''","sr":"9' 0.00''","wc":252.8,"la":11.06,"mv":35,"sp":3.31},
 {"rank":2,"rd":"2","n":"Darryn Peterson","pos":"SG/PG","sch":"Kansas","cls":"Freshman","age":19.4,"htT":"6'5.75","wtT":199,"ppg":20.2,"rpg":4.2,"apg":1.6,"bpg":0.6,"spg":1.4,"ts":0.578,"usg":33.5,"bpm":14.1,"obpm":9.3,"dbpm":4.8,"p36p":24.6,"p36r":5.1,"p36a":2,"p36b":0.7,"p36s":1.7,"ws":"6' 9.75''","ht":"6' 4.50''","sr":"8' 7.00''","wc":198.8,"la":11.17,"mv":37.5,"sp":3.16},
 {"rank":3,"rd":"3","n":"AJ Dybantsa","pos":"SF","sch":"BYU","cls":"Freshman","age":19.4,"htT":"6'9.75","wtT":217,"ppg":25.5,"rpg":6.8,"apg":3.7,"bpg":0.3,"spg":1.1,"ts":0.6,"usg":33.9,"bpm":11.7,"obpm":9.5,"dbpm":2.2,"p36p":28.6,"p36r":7.6,"p36a":4.2,"p36b":0.3,"p36s":1.2},
@@ -86,4 +109,4 @@ const BB=[{"rank":1,"rd":"1","n":"Cameron Boozer","pos":"PF","sch":"Duke","cls":
 {"rank":null,"rd":"NR","n":"Patrick Ngongba II","pos":"C","sch":"Duke","cls":"Sophomore","age":20.3,"htT":"6'11","wtT":250,"ppg":10.1,"rpg":5.8,"apg":2,"bpg":1.1,"spg":0.6,"ts":0.645,"usg":21.1,"bpm":10.9,"obpm":6.8,"dbpm":4.1,"p36p":13.3,"p36r":7.6,"p36a":2.6,"p36b":1.4,"p36s":0.8}
 ];
 
-export { LAL_TARGETS, BB };
+export { LAL_TARGETS, LAL_WORKOUTS, LAL_WORKOUT_NAMES, BB };
