@@ -18,6 +18,15 @@ const TIER2 = [
   { n: 'Kingston Flemings', pos: 'PG', sch: 'Houston', rank: 7, bpm: 12.6, note: 'Considered a better two-way fit than Acuff. Strong defensive metrics.' },
 ];
 
+// Garcia's point-guard order from the May 25, 2026 post ("Is there a top tier point guard?")
+const PG_RANK = [
+  { n: 'Keaton Wagler', pos: 'SG/PG', sch: 'Illinois', note: 'The guy I like most — a captain who sets the example, and I trust his rim-pressure process.' },
+  { n: 'Kingston Flemings', pos: 'PG', sch: 'Houston', note: 'Strong process and rim pressure. The one knock is that he plays a bit small.' },
+  { n: 'Labaron Philon Jr.', pos: 'PG', sch: 'Alabama', note: 'The one PG who flashes all the PG1 qualities; size and athleticism are the only questions.' },
+  { n: 'Mikel Brown Jr.', pos: 'PG', sch: 'Louisville', note: "If the health weren't a concern, I might have him as PG1." },
+  { n: 'Darius Acuff Jr.', pos: 'PG', sch: 'Arkansas', note: 'Could be the best of the group, but reads as a mid-range/three specialist, and the defense is a real worry.' },
+];
+
 const CustomTooltip = ({ active, payload }) => {
   if (!active || !payload?.length) return null;
   const d = payload[0].payload;
@@ -75,6 +84,10 @@ export default function ClassOverview() {
             <p style={{ color: TEXT, lineHeight: 1.85, fontSize: 14, margin: 0 }}>
               <strong style={{ color: GOLD }}>NIL has reshaped the late first round.</strong>{' '}
               Multiple projected first-rounders — Haugh, Ngongba II, Mullins, Krivas, Condon — returned to school because their NIL earnings exceeded what a late-first contract could offer. This compressed the pool around available bigs and shifted some borderline names upward. The Lakers' scouting window (#15–40) is where this effect is most visible.
+            </p>
+            <p style={{ color: TEXT, lineHeight: 1.85, fontSize: 14, margin: '16px 0 0' }}>
+              <strong style={{ color: GOLD }}>The declaration deadline thinned it further.</strong>{' '}
+              After the May 27 decision date, <span style={{ color: GOLD }}>Rueben Chinyelu</span> and Malachi Moreno also returned to school, and Matt Able headed back to North Carolina. Staying in, per Garcia: Veesaar, Jefferson, Richmond, Ejiofor, Reed Jr., and Isaiah Evans — the class you scout is not the class that declared.
             </p>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
@@ -136,6 +149,39 @@ export default function ClassOverview() {
                 {!isMobile && <p style={{ fontSize: 11, color: MUTED, lineHeight: 1.6, marginTop: 10, marginBottom: 0 }}>{p.note}</p>}
               </div>
             ))}
+          </div>
+        </div>
+
+        {/* PG ranking — Garcia's "No PG1" point-guard order */}
+        <div style={{ marginBottom: 36 }}>
+          <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 18, color: TEXT, letterSpacing: 1, marginBottom: 6 }}>
+            NO PG1 — GARCIA'S POINT-GUARD ORDER
+          </div>
+          <p style={{ color: MUTED, fontSize: 13, lineHeight: 1.7, margin: '0 0 16px', maxWidth: 760 }}>
+            This is a deep, talented point-guard class with no true PG1. Every name carries a severe flaw — it reminds me more of the
+            Jeremiah Fears / Rob Dillingham / Brandin Podziemski / Kobe Bufkin tier. Dylan Harper would have been my PG1 (and a top-4 pick).
+            Flip this list upside down and that might be the real order; I wouldn't be shocked.
+          </p>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+            {PG_RANK.map((p, i) => (
+              <div key={p.n} style={{
+                display: 'flex', alignItems: isMobile ? 'flex-start' : 'center', gap: 12,
+                background: CARD, border: `1px solid ${BORDER}`, borderLeft: `3px solid ${GOLD}`,
+                borderRadius: '0 8px 8px 0', padding: isMobile ? '12px 14px' : '12px 16px',
+                flexWrap: isMobile ? 'wrap' : 'nowrap',
+              }}>
+                <span style={{ fontFamily: "'DM Mono', monospace", fontSize: 18, color: GOLD, width: 22, flexShrink: 0, textAlign: 'center' }}>{i + 1}</span>
+                <Logo logoKey={PROSPECT_LOGO[p.n]} size={26} fallback={p.sch} />
+                <div style={{ minWidth: isMobile ? 0 : 150 }}>
+                  <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 16, color: TEXT, lineHeight: 1.1 }}>{p.n}</div>
+                  <div style={{ fontSize: 11, color: MUTED }}>{p.pos} · {p.sch}</div>
+                </div>
+                <div style={{ color: MUTED, fontSize: 12, lineHeight: 1.6, flex: 1, ...(isMobile ? { flexBasis: '100%', marginTop: 4 } : {}) }}>{p.note}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ fontFamily: "'DM Mono', monospace", fontSize: 11, color: MUTED, marginTop: 12 }}>
+            Mike Garcia / Lakers Draft Scouting — May 25, 2026
           </div>
         </div>
 

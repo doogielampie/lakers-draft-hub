@@ -18,6 +18,10 @@ const PANELS = [
     t: "The Writer's Philosophy — BPA Over Fit",
     b: "'I'm focusing on the idea of drafting good basketball players, and not just for specific skill sets. I feel like that's what happens when guys like Reed Sheppard are drafted over Stephon Castle. Who is the better basketball player? Castle.' The post's prospect list skews toward switchable bigs not because of fit — but because good basketball players who happen to fit are the real target.",
   },
+  {
+    t: 'Buying Into the Second Round',
+    b: "The new CBA's first- and second-apron limits make it harder to buy talent the way the Lakers once did with unlimited veteran-minimum deals. The workaround Garcia lays out: acquire second-round talent on minimums or two-way contracts — two-ways don't count against the cap — and treat the Coachella Valley Lakers as a development pipeline for rarer archetypes that used to be easy to find on the buyout market. The 2026 center class is deep enough to source that there, and the board lines up with Tony Bennett's philosophy and the fever-dream vision of Luka surrounded by lob threats and shooters. Second-round watch list: Baba Miller (the steal), Ugonna Onyenso, Izaiyah Nelson, Ernest Udeh Jr., and Trevon Brazile — full takes live on each player's Big Board profile.",
+  },
 ];
 
 export default function LakersAt25() {
