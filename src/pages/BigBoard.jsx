@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { BB, LAL_TARGETS, LAL_WORKOUT_NAMES } from '../data/bigboard';
 import { PROSPECT_LOGO } from '../data/draftOrder';
 import { RADAR_GRADES } from '../data/radarGrades';
@@ -35,7 +36,20 @@ const SORT_PILLS = [
 ];
 
 export default function BigBoard() {
-  const [drawer, setDrawer] = useState(null);
+  const [searchParams, setSearchParams] = useSearchParams();
+  // Drawer is deep-linkable via ?p=<prospect name> (e.g. from the workout tracker).
+  const [drawer, setDrawer] = useState(() => {
+    const n = searchParams.get('p');
+    return n ? BB.find(x => x.n === n) || null : null;
+  });
+  const openDrawer = (p) => {
+    setDrawer(p);
+    setSearchParams(sp => { if (p) sp.set('p', p.n); else sp.delete('p'); return sp; }, { replace: true });
+  };
+  const closeDrawer = () => {
+    setDrawer(null);
+    setSearchParams(sp => { sp.delete('p'); return sp; }, { replace: true });
+  };
   const [posFilter, setPosFilter] = useState('All');
   const [clsFilter, setClsFilter] = useState('All');
   const [combineFilter, setCombineFilter] = useState(false);
@@ -230,7 +244,7 @@ export default function BigBoard() {
                   return (
                     <tr
                       key={p.n + i}
-                      onClick={() => setDrawer(p)}
+                      onClick={() => openDrawer(p)}
                       style={{
                         background: rowBg,
                         borderLeft: isTarget ? `3px solid ${GOLD}` : inWindow ? `3px solid ${GOLD}33` : '3px solid transparent',
@@ -318,7 +332,7 @@ export default function BigBoard() {
               return (
                 <div
                   key={p.n + i}
-                  onClick={() => setDrawer(p)}
+                  onClick={() => openDrawer(p)}
                   style={{
                     background: cardBg,
                     border: `1px solid ${isTarget ? GOLD : inWindow ? `${GOLD}33` : BORDER}`,
@@ -432,7 +446,7 @@ export default function BigBoard() {
         )}
       </div>
 
-      {drawer && <ProspectDrawer prospect={drawer} onClose={() => setDrawer(null)} />}
+      {drawer && <ProspectDrawer prospect={drawer} onClose={closeDrawer} />}
     </div>
   );
 }

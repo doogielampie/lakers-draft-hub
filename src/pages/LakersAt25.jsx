@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { GOLD, CARD, BORDER, TEXT, MUTED } from '../theme';
 import { BB, LAL_TARGETS, LAL_WORKOUTS } from '../data/bigboard';
 import { PROSPECT_LOGO } from '../data/draftOrder';
@@ -56,10 +57,8 @@ export default function LakersAt25() {
         <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: isMobile ? 22 : 28, letterSpacing: 1, color: TEXT, marginBottom: 6 }}>
           PRE-DRAFT WORKOUTS
         </div>
-        <p style={{ color: MUTED, fontSize: 13, lineHeight: 1.7, margin: '0 0 16px', maxWidth: 760 }}>
-          The Lakers no longer announce workouts publicly, so this tracks every prospect reported — by the player or by beat
-          reporters — to have worked out or interviewed for the front office. Names already on our big board are highlighted in gold.
-          Source: <span style={{ color: TEXT }}>Silver Screen and Roll</span> workout tracker, updated June 8, 2026.
+        <p style={{ color: MUTED, fontSize: 13, lineHeight: 1.7, margin: '0 0 16px' }}>
+          Updated June 8, 2026.
         </p>
         <div style={{
           display: 'grid',
@@ -69,13 +68,14 @@ export default function LakersAt25() {
           {LAL_WORKOUTS.map(w => {
             const onBoard = BOARD_NAMES.has(w.n);
             const isTarget = LAL_TARGETS.includes(w.n);
-            return (
-              <div key={w.n} style={{
-                display: 'flex', alignItems: 'center', gap: 9,
-                background: CARD, border: `1px solid ${onBoard ? `${GOLD}66` : BORDER}`,
-                borderLeft: `3px solid ${onBoard ? GOLD : BORDER}`,
-                borderRadius: '0 6px 6px 0', padding: '9px 12px', minWidth: 0,
-              }}>
+            const cardStyle = {
+              display: 'flex', alignItems: 'center', gap: 9,
+              background: CARD, border: `1px solid ${onBoard ? `${GOLD}66` : BORDER}`,
+              borderLeft: `3px solid ${onBoard ? GOLD : BORDER}`,
+              borderRadius: '0 6px 6px 0', padding: '9px 12px', minWidth: 0,
+            };
+            const inner = (
+              <>
                 <Logo logoKey={PROSPECT_LOGO[w.n]} size={22} fallback={w.sch} />
                 <div style={{ minWidth: 0 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
@@ -92,7 +92,18 @@ export default function LakersAt25() {
                   </div>
                   <div style={{ color: MUTED, fontSize: 11, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{w.sch}</div>
                 </div>
-              </div>
+              </>
+            );
+            // On-board prospects link to their Big Board profile (opens the drawer via ?p=).
+            return onBoard ? (
+              <Link
+                key={w.n}
+                to={`/big-board?p=${encodeURIComponent(w.n)}`}
+                title={`View ${w.n}'s profile`}
+                style={{ ...cardStyle, textDecoration: 'none', cursor: 'pointer' }}
+              >{inner}</Link>
+            ) : (
+              <div key={w.n} style={cardStyle}>{inner}</div>
             );
           })}
         </div>
